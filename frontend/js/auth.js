@@ -1,30 +1,37 @@
 /**
- * Client-side authentication matching the Figma DENTRAT login.
- * Credentials: admin / admin123
+ * Authentication — server-side session via Flask cookies.
  */
 const Auth = {
-  STORAGE_KEY: "dentrat_session",
-  USERNAME: "admin",
-  PASSWORD: "admin123",
+  user: null,
 
-  login(username, password) {
-    if (username === this.USERNAME && password === this.PASSWORD) {
-      sessionStorage.setItem(
-        this.STORAGE_KEY,
-        JSON.stringify({ username, loggedInAt: Date.now() })
-      );
-      return true;
+  async init() {
+    try {
+      const data = await API.me();
+      this.user = data.logged_in ? data.user : null;
+    } catch {
+      this.user = null;
     }
-    return false;
+    return this.user;
   },
 
-  logout() {
-    sessionStorage.removeItem(this.STORAGE_KEY);
-    sessionStorage.removeItem("dentrat_last_result");
+  async login(username, password) {
+    const data = await API.login(username, password);
+    this.user = data.user;
+    return data.user;
+  },
+
+  async logout() {
+    try { await API.logout(); } catch { /* ignore */ }
+    this.user = null;
+    State.pendingAnalysis = null;
   },
 
   isLoggedIn() {
-    return !!sessionStorage.getItem(this.STORAGE_KEY);
+    return !!this.user;
+  },
+
+  fullName() {
+    return this.user?.full_name || "User";
   },
 
   requireAuth() {

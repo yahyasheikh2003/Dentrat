@@ -1,124 +1,106 @@
 /**
- * DENTRAT API client — connects frontend to Flask backend.
- * Uses relative URLs since frontend and backend share the same Replit origin.
+ * DENTRAT API client — all backend communication.
  */
 const API = {
-  async health() {
-    const res = await fetch("/health");
-    return res.json();
+  async request(url, options = {}) {
+    const res = await fetch(url, {
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+      ...options,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || data.detail || "Request failed");
+    return data;
   },
 
-  async stats() {
-    const res = await fetch("/stats");
-    if (!res.ok) throw new Error("Failed to load stats");
-    return res.json();
+  health() {
+    return fetch("/health").then((r) => r.json());
   },
 
-  async history(limit = 20) {
-    const res = await fetch(`/history?limit=${limit}`);
-    if (!res.ok) throw new Error("Failed to load history");
-    return res.json();
+  me() {
+    return fetch("/me", { credentials: "include" }).then((r) => r.json());
   },
 
-  async upload(file, onProgress) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      const formData = new FormData();
-      formData.append("image", file);
+  signup(payload) {
+    return this.request("/signup", { method: "POST", body: JSON.stringify(payload) });
+  },
 
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable && onProgress) {
-          onProgress(Math.round((e.loaded / e.total) * 100));
-        }
-      });
-
-      xhr.addEventListener("load", () => {
-        try {
-          const data = JSON.parse(xhr.responseText);
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(data);
-          } else {
-            reject(new Error(data.error || data.detail || "Upload failed"));
-          }
-        } catch {
-          reject(new Error("Invalid server response"));
-        }
-      });
-
-      xhr.addEventListener("error", () => reject(new Error("Network error")));
-      xhr.open("POST", "/upload");
-      xhr.send(formData);
+  login(username, password) {
+    return this.request("/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
     });
   },
-};
 
-/** Dental conditions shown in UI — mapped to model class IDs */
-const CONDITIONS = [
-  {
-    id: "caries",
-    label: "Caries & Cavities",
-    desc: "Detect tooth decay and cavity formations",
-    classId: 1,
-    color: "#ef4444",
-    iconClass: "red",
+  logout() {
+    return this.request("/logout", { method: "POST" });
   },
-  {
-    id: "impaction",
-    label: "Impaction",
-    desc: "Identify impacted teeth and positioning issues",
-    classId: 2,
-    color: "#f97316",
-    iconClass: "orange",
+
+  stats() {
+    return fetch("/stats", { credentials: "include" }).then((r) => r.json());
   },
-  {
-    id: "bone_loss",
-    label: "Bone Loss",
-    desc: "Analyze periodontal bone density and loss",
-    classId: 6,
-    color: "#a855f7",
-    iconClass: "purple",
+
+  analyze(file, onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const fd = new FormData();
+      fd.append("image", file);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = () => {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+          else reject(new Error(data.error || "Analysis failed"));
+        } catch { reject(new Error("Invalid response")); }
+      };
+      xhr.onerror = () => reject(new Error("Network error"));
+      xhr.open("POST", "/analyze");
+      xhr.withCredentials = true;
+      xhr.send(fd);
+    });
   },
-  {
-    id: "fillings",
-    label: "Fillings",
-    desc: "Detect existing dental fillings and restorations",
-    classId: null,
-    color: "#3b82f6",
-    iconClass: "blue",
-    note: "Not yet supported by current model",
+
+  saveAnalysis(payload) {
+    return this.request("/save-analysis", { method: "POST", body: JSON.stringify(payload) });
   },
-  {
-    id: "broken_crown",
-    label: "Broken Down/Crown Tooth",
-    desc: "Identify damaged crowns and broken tooth structures",
-    classId: 3,
-    color: "#eab308",
-    iconClass: "yellow",
+
+  getSavedAnalyses() {
+    return this.request("/saved-analyses");
   },
-  {
-    id: "infection",
-    label: "Infection",
-    desc: "Detect signs of dental infections and abscesses",
-    classId: 4,
-    color: "#ec4899",
-    iconClass: "pink",
+
+  getAnalysis(id) {
+    return this.request(`/analysis/${id}`);
   },
-  {
-    id: "fractured",
-    label: "Fractured Teeth",
-    desc: "Identify tooth fractures and structural cracks",
-    classId: 5,
-    color: "#22c55e",
-    iconClass: "green",
+
+  deleteAnalysis(id) {
+    return this.request(`/analysis/${id}`, { method: "DELETE" });
   },
-];
+
+  updateComment(id, comment) {
+    return this.request(`/analysis/${id}/comment`, {
+      method: "PUT",
+      body: JSON.stringify({ comment }),
+    });
+  },
+
+  pdfUrl(id) {
+    return `/analysis/${id}/pdf`;
+  },
+};
 
 const CLASS_COLORS = {
-  1: "#ef4444",
-  2: "#f97316",
-  3: "#eab308",
-  4: "#ec4899",
-  5: "#22c55e",
-  6: "#a855f7",
-  7: "#3b82f6",
+  1: "#FF4444", 2: "#FF8800", 3: "#FFCC00", 4: "#44AA44",
+  5: "#4488FF", 6: "#AA44FF", 7: "#3b82f6",
 };
+
+const CONDITIONS = [
+  { id: 1, name: "Caries & Cavities", icon: "fa-circle", color: "#ef4444" },
+  { id: 2, name: "Impacted Teeth", icon: "fa-tooth", color: "#f97316" },
+  { id: 6, name: "Periodontal Bone Loss", icon: "fa-bone", color: "#a855f7" },
+  { id: 3, name: "Broken Crown/Root", icon: "fa-shield-halved", color: "#eab308" },
+  { id: 4, name: "Infection", icon: "fa-virus", color: "#ec4899" },
+  { id: 5, name: "Fractured Teeth", icon: "fa-bolt", color: "#22c55e" },
+  { id: 7, name: "Other Abnormalities", icon: "fa-magnifying-glass", color: "#3b82f6" },
+];

@@ -1,715 +1,616 @@
 /**
- * DENTRAT — Main Application (SPA)
- * Replicates the Figma site: Login, Analysis, Results, Help
+ * DENTRAT — Main SPA Application
  */
 
-// ─── SVG Icons ───
-const Icons = {
-  pulse: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
-  user: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
-  lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
-  eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
-  eyeOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`,
-  upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
-  info: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
-  file: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
-  help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-  logout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
-  doc: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="64" height="64"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
-  circle: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><circle cx="12" cy="12" r="8"/></svg>`,
-  bone: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M8 8a3 3 0 1 0-4 4 3 3 0 0 0 4 4m8-8a3 3 0 1 0 4 4 3 3 0 0 0-4 4M8 16a3 3 0 1 0 4 4 3 3 0 0 0-4-4m8-8a3 3 0 1 0-4-4 3 3 0 0 0 4 4"/></svg>`,
-  tooth: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2C9 2 6 4 6 8c0 3 1 5 2 8 1 2 2 4 4 4s3-2 4-4c1-3 2-5 2-8 0-4-3-6-6-6z"/></svg>`,
-  shield: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/></svg>`,
-  flame: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2c1 4 4 6 4 10a4 4 0 1 1-8 0c0-2 2-4 4-10z"/></svg>`,
-  crack: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 3v18M8 8l4 4-4 4M16 8l-4 4 4 4"/></svg>`,
-};
-
-const conditionIcons = {
-  caries: Icons.circle,
-  impaction: Icons.pulse,
-  bone_loss: Icons.bone,
-  fillings: Icons.tooth,
-  broken_crown: Icons.shield,
-  infection: Icons.flame,
-  fractured: Icons.crack,
-};
-
-// ─── Router ───
 const Router = {
   routes: {},
-  current: "",
-
-  register(path, handler) {
-    this.routes[path] = handler;
-  },
-
-  navigate(path) {
-    history.pushState({}, "", path);
-    this.render();
-  },
-
-  render() {
+  navigate(path) { history.pushState({}, "", path); this.render(); },
+  register(path, handler) { this.routes[path] = handler; },
+  async render() {
+    await Auth.init();
     const path = window.location.pathname;
-    this.current = path;
 
-    if (path === "/login") {
-      if (Auth.isLoggedIn()) {
-        history.replaceState({}, "", "/");
-        this.render();
-        return;
-      }
-      this.routes["/login"]?.();
-      return;
-    }
-
-    if (!Auth.isLoggedIn()) {
+    const publicPaths = ["/login", "/signup"];
+    if (!Auth.isLoggedIn() && !publicPaths.includes(path)) {
       history.replaceState({}, "", "/login");
-      this.routes["/login"]?.();
-      return;
+      return this.routes["/login"]?.();
+    }
+    if (Auth.isLoggedIn() && (path === "/login" || path === "/signup")) {
+      history.replaceState({}, "", "/dashboard");
+      return this.routes["/dashboard"]?.();
     }
 
-    const handler = this.routes[path] || this.routes["/"];
+    // Detail route: /saved/123
+    const savedMatch = path.match(/^\/saved\/(\d+)$/);
+    if (savedMatch) return renderSavedDetail(parseInt(savedMatch[1]));
+
+    const handler = this.routes[path] || this.routes["/dashboard"];
     handler?.();
   },
 };
 
-// ─── State ───
 const State = {
-  selectedConditions: new Set(),
+  pendingAnalysis: null,  // holds analyze response before save
   uploadedFile: null,
   previewUrl: null,
-  isAnalyzing: false,
   helpSection: "getting-started",
 };
 
-// ─── Utilities ───
-function showToast(message, type = "error") {
-  const container = document.getElementById("toast-container");
-  const toast = document.createElement("div");
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 4500);
+function showToast(msg, type = "error") {
+  const t = document.createElement("div");
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById("toast-container").appendChild(t);
+  setTimeout(() => t.remove(), 4500);
 }
 
-function escapeHtml(str) {
+function esc(str) {
   const d = document.createElement("div");
-  d.textContent = str;
+  d.textContent = str ?? "";
   return d.innerHTML;
 }
 
-function saveResult(data, file, previewUrl, selectedIds) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    sessionStorage.setItem(
-      "dentrat_last_result",
-      JSON.stringify({
-        ...data,
-        imageDataUrl: reader.result,
-        selectedConditions: [...selectedIds],
-        analyzedAt: new Date().toISOString(),
-      })
-    );
-  };
-  reader.readAsDataURL(file);
+function formatDate(iso) {
+  try { return new Date(iso).toLocaleString(); } catch { return iso; }
 }
 
-function getLastResult() {
+// ─── Shell ───
+function renderShell(activeNav, content) {
+  return `
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+          <div><h1>DENTRAT</h1><p>AI Dental Analysis</p></div>
+        </div>
+        <nav class="sidebar-nav">
+          <button class="nav-item ${activeNav === "dashboard" ? "active" : ""}" data-nav="/dashboard">
+            <i class="fa-solid fa-microscope"></i> Analysis
+          </button>
+          <button class="nav-item ${activeNav === "results" ? "active" : ""}" data-nav="/results">
+            <i class="fa-solid fa-chart-line"></i> Current Results
+          </button>
+          <button class="nav-item ${activeNav === "saved" ? "active" : ""}" data-nav="/saved">
+            <i class="fa-solid fa-folder-open"></i> Saved Analyses
+          </button>
+          <button class="nav-item ${activeNav === "help" ? "active" : ""}" data-nav="/help">
+            <i class="fa-solid fa-circle-question"></i> Help
+          </button>
+        </nav>
+        <div class="sidebar-footer">© 2026 DENTRAT<br>HIPAA Compliant</div>
+      </aside>
+      <div class="main-area">
+        <header class="topbar">
+          <div style="display:flex;align-items:center;gap:1rem">
+            <button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="topbar-greeting">
+              <h2>Hello, ${esc(Auth.fullName())}</h2>
+              <p>Dental Radiography Analysis Dashboard</p>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <span id="health-status" style="font-size:0.8rem;color:var(--gray-600)">
+              <span class="health-dot bad"></span> Checking...
+            </span>
+            <button class="btn btn-secondary btn-sm" id="logout-btn">
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+          </div>
+        </header>
+        <main class="page-content">${content}</main>
+      </div>
+    </div>`;
+}
+
+function bindShellEvents() {
+  document.querySelectorAll("[data-nav]").forEach((btn) => {
+    btn.addEventListener("click", () => Router.navigate(btn.dataset.nav));
+  });
+  document.getElementById("logout-btn")?.addEventListener("click", async () => {
+    await Auth.logout();
+    Router.navigate("/login");
+  });
+  document.getElementById("menu-toggle")?.addEventListener("click", () => {
+    document.getElementById("sidebar")?.classList.toggle("open");
+  });
+  checkHealthStatus();
+}
+
+async function checkHealthStatus() {
+  const el = document.getElementById("health-status");
+  if (!el) return;
   try {
-    return JSON.parse(sessionStorage.getItem("dentrat_last_result"));
+    const h = await API.health();
+    if (h.model_loaded) {
+      el.innerHTML = '<span class="health-dot ok"></span> AI Model Online';
+    } else {
+      el.innerHTML = '<span class="health-dot bad"></span> Model Offline';
+    }
   } catch {
-    return null;
+    el.innerHTML = '<span class="health-dot bad"></span> Server Error';
   }
 }
 
-function filterDetections(detections, selectedConditionIds) {
-  const selectedClassIds = CONDITIONS.filter((c) => selectedConditionIds.includes(c.id) && c.classId)
-    .map((c) => c.classId);
-  if (selectedClassIds.length === 0) return detections;
-  return detections.filter((d) => selectedClassIds.includes(d.class_id));
-}
-
-// ─── Shared Components ───
-function renderNavbar(active) {
-  return `
-    <nav class="navbar">
-      <a href="/" class="nav-brand" data-link>
-        <div class="nav-logo">${Icons.pulse}</div>
-        <div class="nav-brand-text">
-          <h1>DENTRAT</h1>
-          <p>Dental Radiography Analysis Tool</p>
-        </div>
-      </a>
-      <div class="nav-links">
-        <a href="/" class="nav-link ${active === "analysis" ? "active" : ""}" data-link>
-          ${Icons.pulse}<span class="label">Analysis</span>
-        </a>
-        <a href="/results" class="nav-link ${active === "results" ? "active" : ""}" data-link>
-          ${Icons.file}<span class="label">Results</span>
-        </a>
-        <a href="/help" class="nav-link ${active === "help" ? "active" : ""}" data-link>
-          ${Icons.help}<span class="label">Help</span>
-        </a>
-        <button class="nav-link logout" id="logout-btn">
-          ${Icons.logout}<span class="label">Logout</span>
-        </button>
-      </div>
-    </nav>`;
-}
-
-function renderFooter() {
-  return `<footer class="app-footer">
-    © 2026 DENTRAT. All rights reserved.<span>•</span>HIPAA Compliant
-  </footer>`;
-}
-
-function renderHipaaBanner() {
-  return `
-    <div class="hipaa-banner">
-      ${Icons.info}
-      <div>
-        <h3>Privacy & HIPAA Compliance</h3>
-        <p>All uploaded images are processed securely and encrypted. No patient data is stored on our servers without explicit consent. Analysis is performed in compliance with HIPAA regulations.</p>
-      </div>
-    </div>`;
-}
-
-function bindNavLinks() {
-  document.querySelectorAll("[data-link]").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      e.preventDefault();
-      Router.navigate(el.getAttribute("href"));
-    });
-  });
-  document.getElementById("logout-btn")?.addEventListener("click", () => {
-    Auth.logout();
-    Router.navigate("/login");
-  });
-}
-
-// ─── Login Page ───
-function renderLogin() {
-  document.title = "Sign In — DENTRAT";
+// ─── Sign Up ───
+function renderSignup() {
+  document.title = "Sign Up — DENTRAT";
   document.getElementById("app").innerHTML = `
-    <div class="login-page">
-      <div class="login-brand">
-        <div class="login-logo">${Icons.pulse}</div>
-        <h1>DENTRAT</h1>
-        <p>Dental Radiography Analysis Tool</p>
-      </div>
-      <div class="login-card">
-        <h2>Sign In</h2>
-        <p class="subtitle">Access your dental analysis dashboard</p>
-        <div id="login-error" class="login-error hidden"></div>
-        <form id="login-form">
-          <div class="form-group">
-            <label for="username">Username</label>
-            <div class="input-wrap">
-              <span class="input-icon">${Icons.user}</span>
-              <input type="text" id="username" placeholder="Enter your username" required autocomplete="username" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="password">Password</label>
-            <div class="input-wrap">
-              <span class="input-icon">${Icons.lock}</span>
-              <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password" />
-              <button type="button" class="toggle-password" id="toggle-pw" aria-label="Toggle password">${Icons.eye}</button>
-            </div>
-          </div>
-          <button type="submit" class="btn-primary" id="login-btn">Sign In</button>
+    <div class="auth-page">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <div class="auth-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+          <h1>DENTRAT</h1>
+          <p>AI Dental Radiograph Analyzer</p>
+        </div>
+        <h2>Create Account</h2>
+        <p class="sub">Register to access the analysis dashboard</p>
+        <div id="signup-error" class="auth-error hidden"></div>
+        <form id="signup-form">
+          <div class="form-row"><label>Full Name *</label><input type="text" id="su-name" required placeholder="Dr. John Smith" /></div>
+          <div class="form-row"><label>Organization <span class="optional">(optional)</span></label><input type="text" id="su-org" placeholder="Dental Clinic Name" /></div>
+          <div class="form-row"><label>Contact <span class="optional">(optional)</span></label><input type="text" id="su-contact" placeholder="+1 555 000 0000" /></div>
+          <div class="form-row"><label>Email *</label><input type="email" id="su-email" required placeholder="you@clinic.com" /></div>
+          <div class="form-row"><label>Username *</label><input type="text" id="su-user" required placeholder="Unique username" /></div>
+          <div class="form-row"><label>Password *</label><input type="password" id="su-pass" required placeholder="Min. 6 characters" /></div>
+          <div class="form-row"><label>Confirm Password *</label><input type="password" id="su-confirm" required placeholder="Repeat password" /></div>
+          <button type="submit" class="btn btn-primary" id="su-btn"><i class="fa-solid fa-user-plus"></i> Create Account</button>
         </form>
+        <p class="auth-switch">Already have an account? <a href="/login" data-link>Sign In</a></p>
       </div>
-      <p class="login-footer">© 2026 DENTRAT. HIPAA Compliant • Secure Login</p>
     </div>`;
 
-  const form = document.getElementById("login-form");
-  const pwInput = document.getElementById("password");
-  const togglePw = document.getElementById("toggle-pw");
-
-  togglePw.addEventListener("click", () => {
-    const isPassword = pwInput.type === "password";
-    pwInput.type = isPassword ? "text" : "password";
-    togglePw.innerHTML = isPassword ? Icons.eyeOff : Icons.eye;
+  document.querySelector("[data-link]")?.addEventListener("click", (e) => {
+    e.preventDefault(); Router.navigate("/login");
   });
 
-  form.addEventListener("submit", async (e) => {
+  document.getElementById("signup-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const btn = document.getElementById("login-btn");
-    const errEl = document.getElementById("login-error");
-    const username = document.getElementById("username").value.trim();
-    const password = pwInput.value;
-
-    btn.disabled = true;
-    btn.textContent = "Signing In...";
+    const errEl = document.getElementById("signup-error");
+    const btn = document.getElementById("su-btn");
     errEl.classList.add("hidden");
+    btn.disabled = true;
 
-    await new Promise((r) => setTimeout(r, 600));
-
-    if (Auth.login(username, password)) {
-      Router.navigate("/");
-    } else {
-      errEl.textContent = "Invalid username or password. Try admin / admin123";
+    try {
+      await API.signup({
+        full_name: document.getElementById("su-name").value.trim(),
+        organization: document.getElementById("su-org").value.trim(),
+        contact: document.getElementById("su-contact").value.trim(),
+        email: document.getElementById("su-email").value.trim(),
+        username: document.getElementById("su-user").value.trim(),
+        password: document.getElementById("su-pass").value,
+        confirm_password: document.getElementById("su-confirm").value,
+      });
+      showToast("Account created! Please sign in.", "success");
+      Router.navigate("/login");
+    } catch (err) {
+      errEl.textContent = err.message;
       errEl.classList.remove("hidden");
       btn.disabled = false;
-      btn.textContent = "Sign In";
     }
   });
 }
 
-// ─── Analysis Page ───
-function renderAnalysis() {
-  document.title = "Analysis — DENTRAT";
-
-  const conditionsHtml = CONDITIONS.map((c) => `
-    <label class="condition-card ${State.selectedConditions.has(c.id) ? "selected" : ""}" data-condition="${c.id}">
-      <input type="checkbox" ${State.selectedConditions.has(c.id) ? "checked" : ""} ${c.classId === null ? "" : ""} />
-      <div class="condition-icon ${c.iconClass}">${conditionIcons[c.id] || Icons.circle}</div>
-      <div class="condition-text">
-        <h4>${c.label}</h4>
-        <p>${c.desc}</p>
-        ${c.note ? `<span class="condition-note">${c.note}</span>` : ""}
-      </div>
-    </label>`).join("");
-
-  const canRun = State.selectedConditions.size > 0 && State.uploadedFile && !State.isAnalyzing;
-
+// ─── Login ───
+function renderLogin() {
+  document.title = "Sign In — DENTRAT";
   document.getElementById("app").innerHTML = `
-    <div class="app-layout">
-      ${renderNavbar("analysis")}
-      <main class="main-content">
-        ${renderHipaaBanner()}
-        <div class="analysis-grid">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Select Conditions to Analyze</h2>
-              <p>Choose one or more dental conditions to detect</p>
-            </div>
-            <div class="conditions-list" id="conditions-list">${conditionsHtml}</div>
-          </div>
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Upload OPG X-Ray</h2>
-              <p>Supports JPEG, PNG, and DICOM formats</p>
-            </div>
-            <div class="upload-zone ${State.uploadedFile ? "has-file" : ""}" id="upload-zone">
-              <input type="file" id="file-input" accept="image/*" hidden />
-              ${State.previewUrl
-                ? `<img src="${State.previewUrl}" class="upload-preview" alt="Preview" />
-                   <p class="upload-filename">${escapeHtml(State.uploadedFile.name)}</p>
-                   <p>Click to change file</p>`
-                : `<div class="upload-circle">${Icons.upload}</div>
-                   <h3>Drop your X-ray here or click to browse</h3>
-                   <p>Maximum file size: 25MB</p>`}
-            </div>
-          </div>
+    <div class="auth-page">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <div class="auth-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+          <h1>DENTRAT</h1>
+          <p>AI Dental Radiograph Analyzer</p>
         </div>
-        <div class="ready-bar">
-          <div>
-            <h3>Ready to Analyze</h3>
-            <p>Select condition(s) and upload an X-ray to begin</p>
+        <h2>Sign In</h2>
+        <p class="sub">Access your dental analysis dashboard</p>
+        <div id="login-error" class="auth-error hidden"></div>
+        <form id="login-form">
+          <div class="form-row">
+            <label>Username or Email</label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" id="li-user" required placeholder="Enter username or email" />
+            </div>
           </div>
-          <button class="btn-run" id="run-analysis" ${canRun ? "" : "disabled"}>
-            ${Icons.pulse} Run Analysis
-          </button>
-        </div>
-      </main>
-      ${renderFooter()}
-    </div>
-    <div id="progress-overlay" class="progress-overlay hidden">
-      <div class="progress-modal">
-        <h3>Analyzing X-Ray</h3>
-        <p>Running AI detection model...</p>
-        <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
+          <div class="form-row">
+            <label>Password</label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="li-pass" required placeholder="Enter password" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="li-btn"><i class="fa-solid fa-right-to-bracket"></i> Sign In</button>
+        </form>
+        <p class="auth-switch">Don't have an account? <a href="/signup" data-link>Create Account</a></p>
       </div>
     </div>`;
 
-  bindNavLinks();
-  bindAnalysisEvents();
-}
-
-function bindAnalysisEvents() {
-  document.querySelectorAll("[data-condition]").forEach((card) => {
-    card.addEventListener("click", (e) => {
-      if (e.target.tagName === "INPUT") return;
-      const id = card.dataset.condition;
-      const cb = card.querySelector("input");
-      cb.checked = !cb.checked;
-      if (cb.checked) State.selectedConditions.add(id);
-      else State.selectedConditions.delete(id);
-      card.classList.toggle("selected", cb.checked);
-      updateRunButton();
-    });
-    card.querySelector("input").addEventListener("change", (e) => {
-      const id = card.dataset.condition;
-      if (e.target.checked) State.selectedConditions.add(id);
-      else State.selectedConditions.delete(id);
-      card.classList.toggle("selected", e.target.checked);
-      updateRunButton();
-    });
+  document.querySelector("[data-link]")?.addEventListener("click", (e) => {
+    e.preventDefault(); Router.navigate("/signup");
   });
 
+  document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById("login-error");
+    const btn = document.getElementById("li-btn");
+    errEl.classList.add("hidden");
+    btn.disabled = true;
+    try {
+      await Auth.login(
+        document.getElementById("li-user").value.trim(),
+        document.getElementById("li-pass").value
+      );
+      Router.navigate("/dashboard");
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove("hidden");
+      btn.disabled = false;
+    }
+  });
+}
+
+// ─── Dashboard ───
+function renderDashboard() {
+  document.title = "Dashboard — DENTRAT";
+
+  const conditionsHtml = CONDITIONS.map((c) => `
+    <div class="condition-item">
+      <div class="condition-dot" style="background:${c.color}"><i class="fa-solid ${c.icon}"></i></div>
+      <div><span>${c.name}</span></div>
+    </div>`).join("");
+
+  const uploadContent = State.previewUrl
+    ? `<img src="${State.previewUrl}" class="upload-preview" alt="X-ray" />
+       <p style="font-size:0.85rem;color:var(--navy-accent);font-weight:600">${esc(State.uploadedFile?.name)}</p>
+       <p style="font-size:0.8rem;color:var(--gray-600)">Click to change</p>`
+    : `<div class="upload-icon-circle"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+       <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.35rem">Drop OPG X-Ray here or click to browse</h3>
+       <p style="font-size:0.8rem;color:var(--gray-600)">JPEG, PNG — Max 25 MB</p>`;
+
+  document.getElementById("app").innerHTML = renderShell("dashboard", `
+    <div class="hipaa-strip">
+      <i class="fa-solid fa-shield-halved"></i>
+      <span>All images are processed securely. Analysis complies with HIPAA regulations. No data shared without consent.</span>
+    </div>
+    <div class="dashboard-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-list-check"></i> Dental conditions we can detect</h3>
+          <p>Our AI automatically scans for all conditions below</p>
+        </div>
+        <div class="condition-list">${conditionsHtml}</div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-x-ray"></i> Upload OPG X-Ray</h3>
+          <p>Upload an image — analysis runs automatically</p>
+        </div>
+        <div class="upload-zone ${State.previewUrl ? "has-file" : ""}" id="upload-zone">
+          <input type="file" id="file-input" accept="image/*" hidden />
+          ${uploadContent}
+        </div>
+      </div>
+    </div>
+    <div id="analyze-overlay" class="overlay hidden">
+      <div class="overlay-card">
+        <div class="spinner"></div>
+        <h3>Analyzing X-Ray</h3>
+        <p>Running AI detection model...</p>
+        <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+    </div>`);
+
+  bindShellEvents();
+  bindUploadEvents();
+}
+
+function bindUploadEvents() {
   const zone = document.getElementById("upload-zone");
   const input = document.getElementById("file-input");
+  if (!zone) return;
 
   zone.addEventListener("click", () => input.click());
   zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("dragover"); });
   zone.addEventListener("dragleave", () => zone.classList.remove("dragover"));
   zone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    zone.classList.remove("dragover");
-    if (e.dataTransfer.files[0]) handleFileSelect(e.dataTransfer.files[0]);
+    e.preventDefault(); zone.classList.remove("dragover");
+    if (e.dataTransfer.files[0]) handleUpload(e.dataTransfer.files[0]);
   });
   input.addEventListener("change", (e) => {
-    if (e.target.files[0]) handleFileSelect(e.target.files[0]);
+    if (e.target.files[0]) handleUpload(e.target.files[0]);
   });
-
-  document.getElementById("run-analysis").addEventListener("click", runAnalysis);
 }
 
-function handleFileSelect(file) {
-  if (!file.type.startsWith("image/")) {
-    showToast("Please upload a valid image file.");
-    return;
-  }
-  if (file.size > 25 * 1024 * 1024) {
-    showToast("File too large. Maximum size is 25MB.");
-    return;
-  }
+async function handleUpload(file) {
+  if (!file.type.startsWith("image/")) return showToast("Please upload a valid image.");
+  if (file.size > 25 * 1024 * 1024) return showToast("File too large (max 25 MB).");
+
   State.uploadedFile = file;
   State.previewUrl = URL.createObjectURL(file);
-  renderAnalysis();
-}
 
-function updateRunButton() {
-  const btn = document.getElementById("run-analysis");
-  if (!btn) return;
-  btn.disabled = !(State.selectedConditions.size > 0 && State.uploadedFile && !State.isAnalyzing);
-}
+  const overlay = document.getElementById("analyze-overlay");
+  const fill = document.getElementById("prog-fill");
+  overlay?.classList.remove("hidden");
 
-async function runAnalysis() {
-  if (!State.uploadedFile || State.selectedConditions.size === 0) return;
-
-  State.isAnalyzing = true;
-  const overlay = document.getElementById("progress-overlay");
-  const fill = document.getElementById("progress-fill");
-  overlay.classList.remove("hidden");
-  fill.style.width = "5%";
-
-  let progress = 5;
+  let prog = 5;
   const timer = setInterval(() => {
-    progress = Math.min(progress + Math.random() * 12, 85);
-    fill.style.width = `${progress}%`;
+    prog = Math.min(prog + Math.random() * 12, 85);
+    if (fill) fill.style.width = `${prog}%`;
   }, 300);
 
   try {
-    const data = await API.upload(State.uploadedFile, (pct) => {
-      fill.style.width = `${Math.max(pct, 10)}%`;
-    });
-
+    const data = await API.analyze(file, (pct) => { if (fill) fill.style.width = `${Math.max(pct, 10)}%`; });
     clearInterval(timer);
-    fill.style.width = "100%";
+    if (fill) fill.style.width = "100%";
 
-    saveResult(data, State.uploadedFile, State.previewUrl, [...State.selectedConditions]);
-
+    State.pendingAnalysis = { ...data, previewUrl: State.previewUrl, file };
     await new Promise((r) => setTimeout(r, 400));
-    overlay.classList.add("hidden");
-    State.isAnalyzing = false;
-
-    showToast(`Analysis complete — ${data.detection_count} finding(s) detected`, "success");
+    overlay?.classList.add("hidden");
+    showToast(`Analysis complete — ${data.detection_count} finding(s)`, "success");
     Router.navigate("/results");
   } catch (err) {
     clearInterval(timer);
-    overlay.classList.add("hidden");
-    State.isAnalyzing = false;
+    overlay?.classList.add("hidden");
     showToast(err.message);
-    renderAnalysis();
+    renderDashboard();
   }
 }
 
-// ─── Results Page ───
-async function renderResults() {
+// ─── Results (current analysis + patient form) ───
+function renderResults() {
   document.title = "Results — DENTRAT";
-  const result = getLastResult();
+  const a = State.pendingAnalysis;
 
-  if (!result) {
-    document.getElementById("app").innerHTML = `
-      <div class="app-layout">
-        ${renderNavbar("results")}
-        <main class="main-content">
-          <div class="empty-state">
-            ${Icons.doc}
-            <h3>No Analysis Results Available</h3>
-            <p>Please run an analysis from the dashboard first</p>
-            <a href="/" class="btn-secondary" data-link>${Icons.pulse} Go to Dashboard</a>
-          </div>
-        </main>
-        ${renderFooter()}
-      </div>`;
-    bindNavLinks();
+  if (!a) {
+    document.getElementById("app").innerHTML = renderShell("results", `
+      <div class="empty-state">
+        <i class="fa-solid fa-file-medical"></i>
+        <h3>No Current Analysis</h3>
+        <p>Upload an X-ray from the Analysis page to see results here.</p>
+        <button class="btn btn-primary btn-sm" style="margin-top:1rem;width:auto" data-nav="/dashboard">
+          <i class="fa-solid fa-upload"></i> Go to Analysis
+        </button>
+      </div>`);
+    bindShellEvents();
     return;
   }
 
-  const filtered = filterDetections(result.detections || [], result.selectedConditions || []);
-  let statsHtml = "";
-  try {
-    const stats = await API.stats();
-    statsHtml = `
-      <div class="stats-row">
-        <div class="mini-stat"><div class="val">${stats.total_images || 0}</div><div class="lbl">Total Scans</div></div>
-        <div class="mini-stat"><div class="val">${stats.total_detections || 0}</div><div class="lbl">Total Findings</div></div>
-        <div class="mini-stat"><div class="val">${filtered.length}</div><div class="lbl">This Scan</div></div>
-      </div>`;
-  } catch { /* stats optional */ }
+  const findingsHtml = a.detections.length === 0
+    ? `<li class="finding-card" style="border-left-color:var(--gray-400)"><h4>No anomalies detected</h4><p style="font-size:0.8rem;color:var(--gray-600)">Above 50% confidence threshold</p></li>`
+    : a.detections.map((d) => `
+        <li class="finding-card" style="border-left-color:${d.color || CLASS_COLORS[d.class_id]}">
+          <h4>${esc(d.class)}</h4>
+          <div class="conf">${Math.round(d.confidence * 100)}% confidence</div>
+          <div class="loc"><i class="fa-solid fa-location-dot"></i> ${esc(d.location)}</div>
+        </li>`).join("");
 
-  document.getElementById("app").innerHTML = `
-    <div class="app-layout">
-      ${renderNavbar("results")}
-      <main class="main-content">
-        <div class="page-header">
-          <div class="page-header-icon">${Icons.file}</div>
-          <h2>Analysis Results</h2>
-          <p>${escapeHtml(result.filename || "X-Ray")} — ${new Date(result.analyzedAt).toLocaleString()}</p>
-        </div>
-        ${statsHtml}
-        <div class="results-grid">
-          <div class="canvas-panel">
-            <canvas id="result-canvas"></canvas>
-          </div>
-          <div class="findings-panel">
-            <div class="summary-card">
-              <div class="count">${filtered.length}</div>
-              <div class="label">${filtered.length === 1 ? "Anomaly detected" : "Anomalies detected"}</div>
+  document.getElementById("app").innerHTML = renderShell("results", `
+    <div class="panel" style="margin-bottom:1.5rem">
+      <div class="panel-header">
+        <h3><i class="fa-solid fa-chart-line"></i> Analysis Results — ${a.detection_count} Finding(s)</h3>
+        <p>${esc(a.filename)} · ${formatDate(a.analysis_date)}</p>
+      </div>
+      <div class="results-layout">
+        <div class="canvas-wrap"><canvas id="result-canvas"></canvas></div>
+        <div>
+          <ul class="findings-list">${findingsHtml}</ul>
+          <div class="patient-form">
+            <h4><i class="fa-solid fa-user-injured"></i> Patient Information</h4>
+            <div class="form-grid">
+              <div class="form-row"><label>Patient Name <span class="optional">(optional)</span></label>
+                <input type="text" id="pt-name" placeholder="Patient full name" /></div>
+              <div class="form-row"><label>Contact <span class="optional">(optional)</span></label>
+                <input type="text" id="pt-contact" placeholder="Phone number" /></div>
+              <div class="form-row full"><label>Email <span class="optional">(optional)</span></label>
+                <input type="email" id="pt-email" placeholder="patient@email.com" /></div>
+              <div class="form-row full"><label>Date & Time</label>
+                <div class="auto-date"><i class="fa-solid fa-clock"></i> ${formatDate(a.analysis_date)} (auto-generated)</div></div>
             </div>
-            <ul class="findings-list" id="findings-list">
-              ${filtered.length === 0
-                ? `<li class="finding-item" style="border-left-color:#9ca3af"><div><h4>No matching anomalies</h4><p class="loc">Try selecting different conditions or uploading another X-ray.</p></div></li>`
-                : filtered.map((d) => `
-                  <li class="finding-item" style="border-left-color:${d.color || CLASS_COLORS[d.class_id]}">
-                    <span class="dot" style="background:${d.color || CLASS_COLORS[d.class_id]}"></span>
-                    <div>
-                      <h4>${escapeHtml(d.class)}</h4>
-                      <div class="conf">${Math.round(d.confidence * 100)}% confidence</div>
-                      <div class="loc">📍 ${escapeHtml(d.location || "Unknown")}</div>
-                    </div>
-                  </li>`).join("")}
-            </ul>
+            <div class="action-row">
+              <button class="btn btn-primary" id="btn-save"><i class="fa-solid fa-floppy-disk"></i> Save Analysis</button>
+              <button class="btn btn-outline" id="btn-save-pdf"><i class="fa-solid fa-file-pdf"></i> Save & Generate PDF</button>
+            </div>
           </div>
         </div>
-        <div class="history-section" id="history-section"></div>
-      </main>
-      ${renderFooter()}
-    </div>`;
+      </div>
+    </div>`);
 
-  bindNavLinks();
-  drawResultCanvas(result.imageDataUrl, filtered, result.image_width, result.image_height);
-  loadHistoryTable();
+  bindShellEvents();
+  drawCanvas(a.previewUrl, a.detections, a.image_width, a.image_height);
+
+  document.getElementById("btn-save").addEventListener("click", () => saveCurrentAnalysis(false));
+  document.getElementById("btn-save-pdf").addEventListener("click", () => saveCurrentAnalysis(true));
 }
 
-function drawResultCanvas(dataUrl, detections, serverW, serverH) {
+async function saveCurrentAnalysis(downloadPdf) {
+  const a = State.pendingAnalysis;
+  if (!a) return;
+
+  const payload = {
+    temp_image_path: a.temp_image_path,
+    detections: a.detections,
+    analysis_date: a.analysis_date,
+    patient_name: document.getElementById("pt-name")?.value.trim(),
+    patient_contact: document.getElementById("pt-contact")?.value.trim(),
+    patient_email: document.getElementById("pt-email")?.value.trim(),
+  };
+
+  try {
+    const data = await API.saveAnalysis(payload);
+    showToast("Analysis saved successfully!", "success");
+    State.pendingAnalysis = null;
+
+    if (downloadPdf && data.analysis?.id) {
+      window.open(API.pdfUrl(data.analysis.id), "_blank");
+    }
+    Router.navigate("/saved");
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+function drawCanvas(dataUrl, detections, w, h) {
   const canvas = document.getElementById("result-canvas");
   if (!canvas) return;
   const img = new Image();
   img.onload = () => {
-    const maxW = 640;
+    const maxW = 560;
     const scale = Math.min(1, maxW / img.width);
     canvas.width = img.width * scale;
     canvas.height = img.height * scale;
     const ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    const sx = canvas.width / (serverW || img.width);
-    const sy = canvas.height / (serverH || img.height);
-
+    const sx = canvas.width / (w || img.width);
+    const sy = canvas.height / (h || img.height);
     detections.forEach((det) => {
-      const [x, y, w, h] = det.bbox;
-      const color = det.color || CLASS_COLORS[det.class_id] || "#ef4444";
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x * sx, y * sy, w * sx, h * sy);
-
+      const [x, y, bw, bh] = det.bbox;
+      const color = det.color || CLASS_COLORS[det.class_id] || "#f00";
+      ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.strokeRect(x * sx, y * sy, bw * sx, bh * sy);
       const label = `${det.class} ${Math.round(det.confidence * 100)}%`;
-      ctx.font = "bold 12px Inter, sans-serif";
-      const tw = ctx.measureText(label).width;
-      const ly = Math.max(y * sy - 4, 14);
+      ctx.font = "bold 11px Inter,sans-serif";
       ctx.fillStyle = color;
-      ctx.fillRect(x * sx, ly - 14, tw + 8, 16);
+      ctx.fillRect(x * sx, Math.max(y * sy - 14, 0), ctx.measureText(label).width + 6, 14);
       ctx.fillStyle = "#fff";
-      ctx.fillText(label, x * sx + 4, ly - 2);
+      ctx.fillText(label, x * sx + 3, Math.max(y * sy - 3, 10));
     });
   };
   img.src = dataUrl;
 }
 
-async function loadHistoryTable() {
-  const section = document.getElementById("history-section");
-  if (!section) return;
+// ─── Saved Analyses ───
+async function renderSaved() {
+  document.title = "Saved Analyses — DENTRAT";
+  document.getElementById("app").innerHTML = renderShell("saved", `
+    <div class="panel"><div class="panel-header">
+      <h3><i class="fa-solid fa-folder-open"></i> Saved Analyses</h3>
+      <p>All saved patient analyses</p>
+    </div><div id="saved-list"><div class="spinner" style="margin:2rem auto"></div></div></div>`);
+  bindShellEvents();
+
   try {
-    const { history } = await API.history(10);
-    if (!history.length) return;
-    section.innerHTML = `
-      <h3>Recent Upload History</h3>
-      <table class="history-table">
-        <thead><tr><th>Filename</th><th>Date</th><th>Findings</th></tr></thead>
-        <tbody>${history.map((h) => `
-          <tr>
-            <td>${escapeHtml(h.filename)}</td>
-            <td>${new Date(h.upload_date).toLocaleString()}</td>
-            <td><span class="badge">${h.detection_count}</span></td>
-          </tr>`).join("")}
-        </tbody>
-      </table>`;
-  } catch { /* optional */ }
+    const { analyses } = await API.getSavedAnalyses();
+    const el = document.getElementById("saved-list");
+    if (!analyses.length) {
+      el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-folder-open"></i>
+        <h3>No Saved Analyses</h3><p>Complete an analysis and save it to see it here.</p></div>`;
+      return;
+    }
+    el.innerHTML = `<div class="saved-list">${analyses.map((a) => `
+      <div class="saved-card" data-id="${a.id}">
+        <div>
+          <h4>${esc(a.patient_name)}</h4>
+          <div class="meta"><i class="fa-solid fa-calendar"></i> ${formatDate(a.analysis_date)}</div>
+        </div>
+        <span class="badge"><i class="fa-solid fa-bullseye"></i> ${a.detection_count} detections</span>
+      </div>`).join("")}</div>`;
+
+    el.querySelectorAll(".saved-card").forEach((card) => {
+      card.addEventListener("click", () => Router.navigate(`/saved/${card.dataset.id}`));
+    });
+  } catch (err) {
+    showToast(err.message);
+  }
 }
 
-// ─── Help Page ───
-const HELP_SECTIONS = {
-  "getting-started": {
-    title: "Getting Started",
-    body: `
-      <p>Welcome to DENTRAT — your AI-powered dental radiography analysis platform. Follow these steps to analyze an OPG X-ray:</p>
-      <ol>
-        <li>Sign in with your credentials</li>
-        <li>Navigate to the <strong>Analysis</strong> page</li>
-        <li>Select one or more dental conditions to detect</li>
-        <li>Upload an OPG X-ray image (JPEG or PNG)</li>
-        <li>Click <strong>Run Analysis</strong></li>
-        <li>View results on the <strong>Results</strong> page</li>
-      </ol>`,
-  },
-  upload: {
-    title: "Uploading X-Rays",
-    body: `
-      <p>DENTRAT accepts the following image formats:</p>
-      <ul>
-        <li>JPEG / JPG</li>
-        <li>PNG</li>
-        <li>BMP, TIFF, WEBP</li>
-      </ul>
-      <h4>Requirements</h4>
-      <ul>
-        <li>Maximum file size: 25 MB (10 MB server limit on free tier)</li>
-        <li>Recommended: OPG (panoramic) X-ray, 416×416 or higher resolution</li>
-        <li>RGB color images work best</li>
-      </ul>
-      <p>Drag and drop your file onto the upload area, or click to browse.</p>`,
-  },
-  conditions: {
-    title: "Detection Conditions",
-    body: `
-      <p>DENTRAT uses a Faster R-CNN model (ResNet50) trained to detect:</p>
-      <ul>
-        <li><strong>Caries & Cavities</strong> — tooth decay</li>
-        <li><strong>Impaction</strong> — impacted teeth</li>
-        <li><strong>Bone Loss</strong> — periodontal bone loss</li>
-        <li><strong>Broken Down/Crown</strong> — damaged crowns</li>
-        <li><strong>Infection</strong> — dental infections</li>
-        <li><strong>Fractured Teeth</strong> — structural cracks</li>
-      </ul>
-      <p><em>Note: Fillings detection is shown in the UI but is not yet supported by the current model version.</em></p>`,
-  },
-  results: {
-    title: "Understanding Results",
-    body: `
-      <p>After analysis, results include:</p>
-      <ul>
-        <li><strong>Annotated X-ray</strong> — color-coded bounding boxes around detected anomalies</li>
-        <li><strong>Confidence score</strong> — model certainty (only results above 50% are shown)</li>
-        <li><strong>Location</strong> — approximate quadrant (Upper/Lower, Left/Right)</li>
-      </ul>
-      <h4>Color Legend</h4>
-      <ul>
-        <li>Red — Caries</li>
-        <li>Orange — Impaction</li>
-        <li>Yellow — Broken Crown</li>
-        <li>Pink — Infection</li>
-        <li>Green — Fractured</li>
-        <li>Purple — Bone Loss</li>
-      </ul>`,
-  },
-  privacy: {
-    title: "Privacy & Security",
-    body: `
-      <p>DENTRAT is designed with healthcare privacy in mind:</p>
-      <ul>
-        <li>Uploaded images are stored temporarily in server memory</li>
-        <li>Detection metadata is stored in a local SQLite database</li>
-        <li>No data is shared with third parties</li>
-        <li>Always obtain patient consent before uploading clinical images</li>
-      </ul>`,
-  },
-  faq: {
-    title: "FAQ",
-    body: `
-      <h4>Where is the AI model stored?</h4>
-      <p>The model file (<code>dental_model_v2.pth</code>) is placed in the <code>models/</code> folder on the server.</p>
-      <h4>How do I update the model?</h4>
-      <p>Replace the .pth file in <code>models/</code> and restart the server.</p>
-      <h4>How do I check if the server is working?</h4>
-      <p>Visit <code>/health</code> on your deployment URL.</p>
-      <h4>What are the default login credentials?</h4>
-      <p>Username: <strong>admin</strong>, Password: <strong>admin123</strong></p>`,
-  },
+async function renderSavedDetail(id) {
+  if (!Auth.isLoggedIn()) return Router.navigate("/login");
+  document.title = "Analysis Detail — DENTRAT";
+
+  document.getElementById("app").innerHTML = renderShell("saved", `
+    <div id="detail-content"><div class="spinner" style="margin:3rem auto"></div></div>`);
+  bindShellEvents();
+
+  try {
+    const { analysis: a } = await API.getAnalysis(id);
+    const findingsHtml = a.detections.map((d) => `
+      <li class="finding-card" style="border-left-color:${CLASS_COLORS[d.class_id]}">
+        <h4>${esc(d.class)}</h4>
+        <div class="conf">${Math.round(d.confidence * 100)}% confidence</div>
+        <div class="loc">${esc(d.location || "")}</div>
+      </li>`).join("");
+
+    document.getElementById("detail-content").innerHTML = `
+      <button class="btn btn-secondary btn-sm" id="back-btn" style="margin-bottom:1rem">
+        <i class="fa-solid fa-arrow-left"></i> Back
+      </button>
+      <div class="panel">
+        <div class="panel-header">
+          <h3>${esc(a.patient_name || "Unnamed Patient")}</h3>
+          <p>${formatDate(a.analysis_date)} · ${a.detection_count} detection(s)</p>
+        </div>
+        <div class="form-grid" style="margin-bottom:1rem">
+          <div><strong style="font-size:0.8rem;color:var(--gray-600)">Contact</strong><p>${esc(a.patient_contact || "—")}</p></div>
+          <div><strong style="font-size:0.8rem;color:var(--gray-600)">Email</strong><p>${esc(a.patient_email || "—")}</p></div>
+        </div>
+        <ul class="findings-list">${findingsHtml || "<li>No detections</li>"}</ul>
+        <div style="margin-top:1.25rem">
+          <label style="font-size:0.85rem;font-weight:600">Clinical Notes / Comment</label>
+          <textarea class="comment-box" id="comment-input" placeholder="Add notes about this analysis...">${esc(a.comment || "")}</textarea>
+        </div>
+        <div class="detail-actions">
+          <button class="btn btn-primary btn-sm" id="btn-pdf"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+          <button class="btn btn-secondary btn-sm" id="btn-comment"><i class="fa-solid fa-comment"></i> Save Comment</button>
+          <button class="btn btn-danger btn-sm" id="btn-delete"><i class="fa-solid fa-trash"></i> Delete</button>
+        </div>
+      </div>`;
+
+    document.getElementById("back-btn").addEventListener("click", () => Router.navigate("/saved"));
+    document.getElementById("btn-pdf").addEventListener("click", () => window.open(API.pdfUrl(id), "_blank"));
+    document.getElementById("btn-comment").addEventListener("click", async () => {
+      try {
+        await API.updateComment(id, document.getElementById("comment-input").value);
+        showToast("Comment saved!", "success");
+      } catch (err) { showToast(err.message); }
+    });
+    document.getElementById("btn-delete").addEventListener("click", async () => {
+      if (!confirm("Delete this analysis permanently?")) return;
+      try {
+        await API.deleteAnalysis(id);
+        showToast("Analysis deleted.", "success");
+        Router.navigate("/saved");
+      } catch (err) { showToast(err.message); }
+    });
+  } catch (err) {
+    showToast(err.message);
+    Router.navigate("/saved");
+  }
+}
+
+// ─── Help ───
+const HELP = {
+  "getting-started": { title: "Getting Started", body: `<p>Welcome to DENTRAT. After signing in:</p><ol><li>Go to <strong>Analysis</strong></li><li>Upload an OPG X-ray (auto-analyzes)</li><li>Review results and enter patient info</li><li>Save analysis and generate PDF report</li></ol>` },
+  upload: { title: "Uploading X-Rays", body: `<p>Supported: JPEG, PNG, BMP, TIFF, WEBP. Max 25 MB. No condition selection needed — all 7 anomaly types are scanned automatically.</p>` },
+  pdf: { title: "PDF Reports", body: `<p>After analysis, enter patient details and click <strong>Save & Generate PDF</strong>. Reports include DENTRAT branding, patient info, detection table, and annotated X-ray.</p>` },
+  saved: { title: "Saved Analyses", body: `<p>All saved analyses appear in the Saved tab. View details, add comments, download PDFs, or delete records.</p>` },
 };
 
 function renderHelp() {
   document.title = "Help — DENTRAT";
-  const section = HELP_SECTIONS[State.helpSection] || HELP_SECTIONS["getting-started"];
+  const section = HELP[State.helpSection] || HELP["getting-started"];
+  const navHtml = Object.entries(HELP).map(([k, v]) =>
+    `<button class="help-nav-item ${State.helpSection === k ? "active" : ""}" data-help="${k}">${v.title}</button>`
+  ).join("");
 
-  const navItems = Object.entries(HELP_SECTIONS).map(([key, val]) => `
-    <button class="help-nav-item ${State.helpSection === key ? "active" : ""}" data-help="${key}">
-      ${Icons.file} ${val.title}
-    </button>`).join("");
-
-  document.getElementById("app").innerHTML = `
-    <div class="app-layout">
-      ${renderNavbar("help")}
-      <main class="main-content">
-        <div class="page-header">
-          <div class="page-header-icon">${Icons.help}</div>
-          <h2>Help & Documentation</h2>
-          <p>Everything you need to know about using DENTRAT</p>
-        </div>
-        <div class="help-layout">
-          <aside class="help-sidebar">
-            <h3>Quick Guides</h3>
-            ${navItems}
-          </aside>
-          <div class="help-content">
-            <h3>${section.title}</h3>
-            ${section.body}
-          </div>
-        </div>
-      </main>
-      ${renderFooter()}
-    </div>`;
-
-  bindNavLinks();
+  document.getElementById("app").innerHTML = renderShell("help", `
+    <div class="help-grid">
+      <div class="panel"><div class="help-nav">${navHtml}</div></div>
+      <div class="panel help-body"><h3>${section.title}</h3>${section.body}</div>
+    </div>`);
+  bindShellEvents();
   document.querySelectorAll("[data-help]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      State.helpSection = btn.dataset.help;
-      renderHelp();
-    });
+    btn.addEventListener("click", () => { State.helpSection = btn.dataset.help; renderHelp(); });
   });
 }
 
 // ─── Init ───
+Router.register("/signup", renderSignup);
 Router.register("/login", renderLogin);
-Router.register("/", renderAnalysis);
+Router.register("/dashboard", renderDashboard);
+Router.register("/", renderDashboard);
 Router.register("/results", renderResults);
+Router.register("/saved", renderSaved);
 Router.register("/help", renderHelp);
 
 window.addEventListener("popstate", () => Router.render());
-
-document.addEventListener("DOMContentLoaded", () => {
-  const path = window.location.pathname;
-  if (path === "/" || path === "/results" || path === "/help") {
-    if (!Auth.isLoggedIn() && path !== "/login") {
-      history.replaceState({}, "", "/login");
-    }
-  }
-  if (path === "/" && !Auth.isLoggedIn()) {
-    history.replaceState({}, "", "/login");
-  }
-  Router.render();
-});
+document.addEventListener("DOMContentLoaded", () => Router.render());

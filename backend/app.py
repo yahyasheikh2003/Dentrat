@@ -27,7 +27,7 @@ from config import (
 )
 from database import get_history, get_stats, init_db, save_detections, save_upload
 from inference import run_inference
-from model_loader import load_model
+from model_loader import load_model, model_diagnostics
 
 logging.basicConfig(
     level=logging.INFO,
@@ -77,15 +77,25 @@ def serve_frontend_file(path: str):
 
 @app.route("/health", methods=["GET"])
 def health():
+    file_info = model_diagnostics()
     return jsonify(
         {
             "status": "healthy" if model is not None else "degraded",
             "model_loaded": model is not None,
             "model_path": MODEL_PATH,
-            "model_exists": os.path.isfile(MODEL_PATH),
+            "model_exists": file_info.get("exists", False),
+            "model_file_size_mb": file_info.get("size_mb", 0),
+            "model_file_valid": file_info.get("valid", False),
+            "model_header_preview": file_info.get("header_preview", ""),
+            "model_url_set": bool(os.environ.get("MODEL_URL", "")),
             "error": model_error,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "classes": CLASS_NAMES,
+            "fix_hint": (
+                "Set MODEL_URL to your Google Drive link, add FORCE_MODEL_REDOWNLOAD=1, redeploy."
+                if not model and file_info.get("exists") and not file_info.get("valid")
+                else None
+            ),
         }
     )
 

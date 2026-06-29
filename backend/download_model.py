@@ -70,7 +70,7 @@ def download_from_google_drive(file_id: str, dest_path: str) -> None:
 
     url = f"https://drive.google.com/uc?id={file_id}"
     logger.info("Downloading from Google Drive (id=%s) ...", file_id)
-    gdown.download(url, dest_path, quiet=False, fuzzy=True)
+    gdown.download(url, dest_path, quiet=False)
 
 
 def download_from_url(url: str, dest_path: str) -> None:

@@ -70,7 +70,8 @@ def download_from_google_drive(file_id: str, dest_path: str) -> None:
 
     url = f"https://drive.google.com/uc?id={file_id}"
     logger.info("Downloading from Google Drive (id=%s) ...", file_id)
-    gdown.download(url, dest_path, quiet=False, fuzzy=True)
+    # Remove fuzzy parameter - not supported in all gdown versions
+    gdown.download(url, dest_path, quiet=False)
 
 
 def download_from_url(url: str, dest_path: str) -> None:
@@ -161,3 +162,4 @@ def get_model_file_info(model_path: str) -> dict:
         "valid": valid,
         "header_preview": preview[:20] if not valid else "ok",
     }
+

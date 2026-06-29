@@ -51,6 +51,7 @@ DEBUG = os.environ.get("FLASK_DEBUG", "0") == "1"
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "bmp", "tif", "tiff", "webp"}
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # 25 MB
+MAX_IMAGE_DIMENSION = 2048  # Downscale larger X-rays before inference (saves RAM)
 
 # Conditions displayed in UI (informational only — no selection required)
 DETECTABLE_CONDITIONS = [

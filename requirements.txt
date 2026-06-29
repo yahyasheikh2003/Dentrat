@@ -11,3 +11,4 @@ pandas>=2.0.0
 gdown>=5.0.0
 bcrypt>=4.0.0
 reportlab>=4.0.0
+gunicorn>=21.0.0

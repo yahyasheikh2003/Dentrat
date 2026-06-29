@@ -427,7 +427,7 @@ async function saveCurrentAnalysis(downloadPdf) {
   if (!a) return;
 
   const payload = {
-    temp_image_path: a.temp_image_path,
+    temp_id: a.temp_id,
     detections: a.detections,
     analysis_date: a.analysis_date,
     patient_name: document.getElementById("pt-name")?.value.trim(),

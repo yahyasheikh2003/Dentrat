@@ -5,13 +5,13 @@ Serves frontend SPA + ML inference + auth + saved analyses + PDF reports.
 import logging
 import os
 import shutil
+import threading
 import uuid
 from datetime import datetime, timezone
 from functools import wraps
 
 from flask import Flask, abort, jsonify, request, send_file, send_from_directory, session
 from flask_cors import CORS
-from PIL import Image
 from werkzeug.utils import secure_filename
 
 from auth import get_current_user_id, hash_password, login_user, logout_user, verify_password
@@ -45,6 +45,7 @@ from database import (
     username_exists,
 )
 from inference import run_inference
+from image_utils import load_image_from_path
 from model_loader import load_model, model_diagnostics
 from pdf_generator import generate_analysis_pdf
 
@@ -64,16 +65,43 @@ CORS(app, supports_credentials=True)
 
 model = None
 model_error = None
+_model_lock = threading.Lock()
+
+
+def get_model():
+    """Thread-safe lazy model loader — loads once on first analysis request."""
+    global model, model_error
+    if model is not None:
+        return model
+    with _model_lock:
+        if model is not None:
+            return model
+        try:
+            logger.info("Loading ML model (first request)...")
+            model = load_model()
+            model_error = None
+            logger.info("Model loaded successfully")
+        except Exception as exc:
+            model_error = str(exc)
+            logger.error("Model load failed: %s", exc)
+            raise
+    return model
+
 
 try:
     init_db()
     os.makedirs(SAVED_IMAGES_DIR, exist_ok=True)
     os.makedirs(UPLOAD_DIR, exist_ok=True)
-    model = load_model()
-    logger.info("Server ready — model loaded successfully")
+    # Pre-load model at startup if possible; analysis will retry via get_model()
+    try:
+        model = load_model()
+        logger.info("Server ready — model loaded at startup")
+    except Exception as exc:
+        model_error = str(exc)
+        logger.warning("Model not loaded at startup (will retry on analyze): %s", exc)
 except Exception as exc:
     model_error = str(exc)
-    logger.error("Failed to load model: %s", exc)
+    logger.error("Startup failed: %s", exc)
 
 SPA_ROUTES = {
     "", "login", "signup", "dashboard", "results", "saved", "help",
@@ -189,12 +217,24 @@ def me():
 
 # ─── Analysis ───
 
+def _find_temp_file(temp_id: str) -> str | None:
+    """Locate uploaded image by temp_id prefix in UPLOAD_DIR."""
+    if not temp_id:
+        return None
+    for name in os.listdir(UPLOAD_DIR):
+        if name.startswith(f"{temp_id}_"):
+            return os.path.join(UPLOAD_DIR, name)
+    return None
+
+
 @app.route("/analyze", methods=["POST"])
 @login_required
 def analyze():
     """Upload X-ray, run model, return detections (does not save yet)."""
-    if model is None:
-        return jsonify({"error": "Model not loaded", "detail": model_error}), 503
+    try:
+        active_model = get_model()
+    except Exception:
+        return jsonify({"error": "Model not loaded", "detail": model_error or "Check /health"}), 503
 
     if "image" not in request.files:
         return jsonify({"error": "No image provided."}), 400
@@ -206,28 +246,33 @@ def analyze():
     file_bytes = file.read()
     if len(file_bytes) > MAX_UPLOAD_BYTES:
         return jsonify({"error": "File too large (max 25 MB)."}), 400
+    if len(file_bytes) == 0:
+        return jsonify({"error": "Empty file."}), 400
 
     safe_name = secure_filename(file.filename)
-    unique_name = f"{uuid.uuid4().hex}_{safe_name}"
-    temp_path = os.path.join(UPLOAD_DIR, unique_name)
+    temp_id = uuid.uuid4().hex
+    temp_path = os.path.join(UPLOAD_DIR, f"{temp_id}_{safe_name}")
 
     try:
+        # Save to disk for later save-analysis step
         with open(temp_path, "wb") as f:
             f.write(file_bytes)
-        image = Image.open(temp_path)
-        image.verify()
-        image = Image.open(temp_path)
+        del file_bytes  # free RAM before inference
 
-        detections = run_inference(model, image)
+        image = load_image_from_path(temp_path)
+        img_w, img_h = image.size
+        detections = run_inference(active_model, image)
+        del image
+
         analysis_date = datetime.now(timezone.utc).isoformat()
 
         return jsonify(
             {
                 "success": True,
-                "temp_image_path": temp_path,
+                "temp_id": temp_id,
                 "filename": safe_name,
-                "image_width": image.size[0],
-                "image_height": image.size[1],
+                "image_width": img_w,
+                "image_height": img_h,
                 "analysis_date": analysis_date,
                 "detection_count": len(detections),
                 "detections": [
@@ -243,6 +288,16 @@ def analyze():
                 ],
             }
         )
+    except MemoryError:
+        logger.exception("Out of memory during analysis")
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        return jsonify(
+            {
+                "error": "Server ran out of memory during analysis.",
+                "detail": "Upgrade Railway RAM to at least 2 GB in Settings → Resources.",
+            }
+        ), 503
     except Exception as exc:
         logger.exception("Analyze failed")
         if os.path.exists(temp_path):
@@ -257,10 +312,11 @@ def save_analysis_route():
     data = request.get_json(silent=True) or {}
     user_id = get_current_user_id()
 
-    temp_path = data.get("temp_image_path", "")
+    temp_id = data.get("temp_id", "")
     detections = data.get("detections", [])
     analysis_date = data.get("analysis_date") or datetime.now(timezone.utc).isoformat()
 
+    temp_path = _find_temp_file(temp_id)
     if not temp_path or not os.path.isfile(temp_path):
         return jsonify({"error": "No analysis image found. Please re-run analysis."}), 400
 

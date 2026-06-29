@@ -32,9 +32,6 @@ Thumbs.db
 .env
 .env.*
 
-# Replit
-.replit.local
-
 # Jupyter
 .ipynb_checkpoints/
 

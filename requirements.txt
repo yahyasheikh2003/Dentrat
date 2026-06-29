@@ -1,0 +1,10 @@
+# Root requirements for Railway (Nixpacks auto-installs this)
+# CPU-only PyTorch keeps the deploy image smaller
+--extra-index-url https://download.pytorch.org/whl/cpu
+flask>=3.0.0
+flask-cors>=4.0.0
+torch>=2.0.0
+torchvision>=0.15.0
+pillow>=10.0.0
+numpy>=1.24.0
+pandas>=2.0.0

@@ -1,16 +1,17 @@
 """
 Load the Faster R-CNN dental anomaly detector for CPU inference.
 
-The model is loaded once at server startup and reused for all requests.
+On Railway, set MODEL_URL to auto-download the .pth file on first startup.
 """
 import logging
 import os
+import urllib.request
 
 import torch
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
-from config import MODEL_PATH, NUM_CLASSES
+from config import MODEL_PATH, MODEL_URL, NUM_CLASSES, PROJECT_ROOT
 
 logger = logging.getLogger(__name__)
 
@@ -23,22 +24,43 @@ def build_model(num_classes: int = NUM_CLASSES):
     return model
 
 
+def ensure_model_file(model_path: str = MODEL_PATH) -> None:
+    """
+    Ensure the model file exists locally.
+
+    If missing and MODEL_URL is set (Railway env var), download it automatically.
+    """
+    if os.path.isfile(model_path):
+        logger.info("Model file found at %s", model_path)
+        return
+
+    if not MODEL_URL:
+        raise FileNotFoundError(
+            f"Model not found at '{model_path}'. "
+            "Either commit is wrong — place dental_model_v2.pth in models/, "
+            "or set MODEL_URL in Railway Variables to a direct download link."
+        )
+
+    os.makedirs(os.path.dirname(model_path), exist_ok=True)
+    logger.info("Downloading model from MODEL_URL to %s ...", model_path)
+
+    try:
+        urllib.request.urlretrieve(MODEL_URL, model_path)
+    except Exception as exc:
+        raise RuntimeError(f"Failed to download model from MODEL_URL: {exc}") from exc
+
+    size_mb = os.path.getsize(model_path) / (1024 * 1024)
+    logger.info("Model downloaded successfully (%.1f MB)", size_mb)
+
+
 def load_model(model_path: str = MODEL_PATH):
     """
-    Load the trained model onto CPU for Replit deployment.
+    Load the trained model onto CPU.
 
     Returns:
         model: Eval-mode Faster R-CNN on CPU
-
-    Raises:
-        FileNotFoundError: If the .pth file is missing
-        RuntimeError: If weights cannot be loaded
     """
-    if not os.path.isfile(model_path):
-        raise FileNotFoundError(
-            f"Model not found at '{model_path}'. "
-            "Upload dental_model_v2.pth to the models/ folder."
-        )
+    ensure_model_file(model_path)
 
     device = torch.device("cpu")
     model = build_model(NUM_CLASSES)
@@ -46,10 +68,8 @@ def load_model(model_path: str = MODEL_PATH):
     try:
         checkpoint = torch.load(model_path, map_location=device, weights_only=False)
     except TypeError:
-        # Older PyTorch versions without weights_only parameter
         checkpoint = torch.load(model_path, map_location=device)
 
-    # Support both raw state_dict and checkpoint dict formats
     if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
         state_dict = checkpoint["model_state_dict"]
     elif isinstance(checkpoint, dict) and "state_dict" in checkpoint:
@@ -57,7 +77,6 @@ def load_model(model_path: str = MODEL_PATH):
     else:
         state_dict = checkpoint
 
-    # Load weights, allowing partial match if classifier head differs
     missing, unexpected = model.load_state_dict(state_dict, strict=False)
     if missing:
         logger.warning("Missing keys when loading model: %s", missing[:5])

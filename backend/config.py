@@ -6,10 +6,25 @@ import os
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BACKEND_DIR)
 
-MODEL_PATH = os.environ.get(
-    "MODEL_PATH",
-    os.path.join(PROJECT_ROOT, "models", "dental_model_v2.pth"),
-)
+MODELS_DIR = os.path.join(PROJECT_ROOT, "models")
+MODEL_V3_PATH = os.path.join(MODELS_DIR, "dental_model_v3.pth")
+MODEL_V2_PATH = os.path.join(MODELS_DIR, "dental_model_v2.pth")
+
+
+def resolve_model_path() -> str:
+    """
+    Pick the best available model file.
+    Priority: MODEL_PATH env → v3 → v2
+    """
+    env_path = os.environ.get("MODEL_PATH")
+    if env_path:
+        return env_path
+    if os.path.isfile(MODEL_V3_PATH):
+        return MODEL_V3_PATH
+    return MODEL_V2_PATH
+
+
+MODEL_PATH = resolve_model_path()
 MODEL_URL = os.environ.get("MODEL_URL", "")
 
 DATABASE_PATH = os.path.join(BACKEND_DIR, "dental_history.db")
@@ -50,10 +65,9 @@ PORT = int(os.environ.get("PORT", 5000))
 DEBUG = os.environ.get("FLASK_DEBUG", "0") == "1"
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "bmp", "tif", "tiff", "webp"}
-MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # 25 MB
-MAX_IMAGE_DIMENSION = 2048  # Downscale larger X-rays before inference (saves RAM)
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+MAX_IMAGE_DIMENSION = 2048
 
-# Conditions displayed in UI (informational only — no selection required)
 DETECTABLE_CONDITIONS = [
     {"id": 1, "name": "Caries & Cavities", "desc": "Tooth decay and cavity formations"},
     {"id": 2, "name": "Impacted Teeth", "desc": "Impacted teeth and positioning issues"},

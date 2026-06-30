@@ -1,5 +1,7 @@
 """
 Load the Faster R-CNN dental anomaly detector for CPU inference.
+
+Supports dental_model_v3.pth with automatic fallback to dental_model_v2.pth.
 """
 import logging
 import os
@@ -8,7 +10,7 @@ import torch
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
-from config import MODEL_PATH, MODEL_URL, NUM_CLASSES
+from config import MODEL_PATH, MODEL_URL, MODEL_V2_PATH, MODEL_V3_PATH, NUM_CLASSES, resolve_model_path
 from download_model import ensure_model_file, get_model_file_info
 
 logger = logging.getLogger(__name__)
@@ -21,16 +23,32 @@ def build_model(num_classes: int = NUM_CLASSES):
     return model
 
 
-def load_model(model_path: str = MODEL_PATH):
-    ensure_model_file(model_path, MODEL_URL)
+def get_model_version_label(path: str) -> str:
+    """Return human-readable model version from file path."""
+    name = os.path.basename(path).lower()
+    if "v3" in name:
+        return "v3"
+    if "v2" in name:
+        return "v2"
+    return "custom"
+
+
+def load_model(model_path: str | None = None):
+    """
+    Load the trained model onto CPU.
+
+    Uses v3 if available, otherwise v2, unless model_path is specified.
+    """
+    path = model_path or resolve_model_path()
+    ensure_model_file(path, MODEL_URL)
 
     device = torch.device("cpu")
     model = build_model(NUM_CLASSES)
 
     try:
-        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+        checkpoint = torch.load(path, map_location=device, weights_only=False)
     except TypeError:
-        checkpoint = torch.load(model_path, map_location=device)
+        checkpoint = torch.load(path, map_location=device)
 
     if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
         state_dict = checkpoint["model_state_dict"]
@@ -47,10 +65,17 @@ def load_model(model_path: str = MODEL_PATH):
 
     model.to(device)
     model.eval()
-    logger.info("Model loaded from %s (CPU inference)", model_path)
+    version = get_model_version_label(path)
+    logger.info("Model %s loaded from %s (CPU inference)", version, path)
     return model
 
 
-def model_diagnostics(model_path: str = MODEL_PATH) -> dict:
-    """Diagnostics for health endpoint."""
-    return get_model_file_info(model_path)
+def model_diagnostics(model_path: str | None = None) -> dict:
+    """Diagnostics for /health endpoint."""
+    path = model_path or resolve_model_path()
+    info = get_model_file_info(path)
+    info["model_version"] = get_model_version_label(path)
+    info["path"] = path
+    info["v3_exists"] = os.path.isfile(MODEL_V3_PATH)
+    info["v2_exists"] = os.path.isfile(MODEL_V2_PATH)
+    return info

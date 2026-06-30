@@ -1,2 +1,2 @@
-# Placeholder — upload your trained model here after Colab training.
-# File name: dental_model_v2.pth
+# Place dental_model_v3.pth here after Colab training (preferred).
+# Falls back to dental_model_v2.pth if v3 is not present.

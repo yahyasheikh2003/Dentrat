@@ -422,42 +422,36 @@ function renderResults() {
     return;
   }
 
-  const findingsHtml = a.detections.length === 0
-    ? `<li class="finding-card" style="border-left-color:var(--gray-400)"><h4>No anomalies detected</h4><p style="font-size:0.8rem;color:var(--gray-600)">Above 50% confidence threshold</p></li>`
-    : a.detections.map((d) => `
-        <li class="finding-card" style="border-left-color:${d.color || CLASS_COLORS[d.class_id]}">
-          <h4>${esc(d.class)}</h4>
-          <div class="conf">${Math.round(d.confidence * 100)}% confidence</div>
-          <div class="loc"><i class="fa-solid fa-location-dot"></i> ${esc(d.location)}</div>
-        </li>`).join("");
+  const findingsHtml =
+    AnalysisUI.renderFindingsSection(a.detections, esc) +
+    AnalysisUI.renderRecommendationsSection(a.clinical_recommendations, esc) +
+    AnalysisUI.renderFooterNote(a.footer, esc);
 
   document.getElementById("app").innerHTML = renderShell("results", `
-    <div class="panel" style="margin-bottom:1.5rem">
+    <div class="panel analysis-report-panel" style="margin-bottom:1.5rem">
       <div class="panel-header">
-        <h3><i class="fa-solid fa-chart-line"></i> Analysis Results — ${a.detection_count} Finding(s)</h3>
+        <h3><i class="fa-solid fa-file-medical"></i> AI Diagnostic Report — ${a.detection_count} Finding(s)</h3>
         <p>${esc(a.filename)} · ${formatDate(a.analysis_date)}</p>
       </div>
       <div class="results-layout">
         <div class="canvas-wrap"><canvas id="result-canvas"></canvas></div>
-        <div>
-          <ul class="findings-list">${findingsHtml}</ul>
-          <div class="patient-form">
-            <h4><i class="fa-solid fa-user-injured"></i> Patient Information</h4>
-            <div class="form-grid">
-              <div class="form-row"><label>Patient Name <span class="optional">(optional)</span></label>
-                <input type="text" id="pt-name" placeholder="Patient full name" /></div>
-              <div class="form-row"><label>Contact <span class="optional">(optional)</span></label>
-                <input type="text" id="pt-contact" placeholder="Phone number" /></div>
-              <div class="form-row full"><label>Email <span class="optional">(optional)</span></label>
-                <input type="email" id="pt-email" placeholder="patient@email.com" /></div>
-              <div class="form-row full"><label>Date & Time</label>
-                <div class="auto-date"><i class="fa-solid fa-clock"></i> ${formatDate(a.analysis_date)} (auto-generated)</div></div>
-            </div>
-            <div class="action-row">
-              <button class="btn btn-primary" id="btn-save"><i class="fa-solid fa-floppy-disk"></i> Save Analysis</button>
-              <button class="btn btn-outline" id="btn-save-pdf"><i class="fa-solid fa-file-pdf"></i> Save & Generate PDF</button>
-            </div>
-          </div>
+        <div class="clinical-report-column">${findingsHtml}</div>
+      </div>
+      <div class="patient-form" style="margin-top:1.5rem;border-top:1px solid var(--gray-100);padding-top:1.25rem">
+        <h4><i class="fa-solid fa-user-injured"></i> Patient Information</h4>
+        <div class="form-grid">
+          <div class="form-row"><label>Patient Name <span class="optional">(optional)</span></label>
+            <input type="text" id="pt-name" placeholder="Patient full name" /></div>
+          <div class="form-row"><label>Contact <span class="optional">(optional)</span></label>
+            <input type="text" id="pt-contact" placeholder="Phone number" /></div>
+          <div class="form-row full"><label>Email <span class="optional">(optional)</span></label>
+            <input type="email" id="pt-email" placeholder="patient@email.com" /></div>
+          <div class="form-row full"><label>Date & Time</label>
+            <div class="auto-date"><i class="fa-solid fa-clock"></i> ${formatDate(a.analysis_date)} (auto-generated)</div></div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-primary" id="btn-save"><i class="fa-solid fa-floppy-disk"></i> Save Analysis</button>
+          <button class="btn btn-outline" id="btn-save-pdf"><i class="fa-solid fa-file-pdf"></i> Save & Generate PDF</button>
         </div>
       </div>
     </div>`);
@@ -570,18 +564,17 @@ async function renderSavedDetail(id) {
 
   try {
     const { analysis: a } = await API.getAnalysis(id);
-    const findingsHtml = a.detections.map((d) => `
-      <li class="finding-card" style="border-left-color:${CLASS_COLORS[d.class_id]}">
-        <h4>${esc(d.class)}</h4>
-        <div class="conf">${Math.round(d.confidence * 100)}% confidence</div>
-        <div class="loc">${esc(d.location || "")}</div>
-      </li>`).join("");
+    const findingsHtml = AnalysisUI.renderReport({
+      detections: a.detections,
+      clinical_recommendations: a.clinical_recommendations,
+      footer: a.footer,
+    }, esc);
 
     document.getElementById("detail-content").innerHTML = `
       <button class="btn btn-secondary btn-sm" id="back-btn" style="margin-bottom:1rem">
         <i class="fa-solid fa-arrow-left"></i> Back
       </button>
-      <div class="panel">
+      <div class="panel analysis-report-panel">
         <div class="panel-header">
           <h3>${esc(a.patient_name || "Unnamed Patient")}</h3>
           <p>${formatDate(a.analysis_date)} · ${a.detection_count} detection(s)</p>
@@ -590,7 +583,7 @@ async function renderSavedDetail(id) {
           <div><strong style="font-size:0.8rem;color:var(--gray-600)">Contact</strong><p>${esc(a.patient_contact || "—")}</p></div>
           <div><strong style="font-size:0.8rem;color:var(--gray-600)">Email</strong><p>${esc(a.patient_email || "—")}</p></div>
         </div>
-        <ul class="findings-list">${findingsHtml || "<li>No detections</li>"}</ul>
+        <div class="clinical-report-column">${findingsHtml}</div>
         <div style="margin-top:1.25rem">
           <label style="font-size:0.85rem;font-weight:600">Clinical Notes / Comment</label>
           <textarea class="comment-box" id="comment-input" placeholder="Add notes about this analysis...">${esc(a.comment || "")}</textarea>

@@ -50,6 +50,7 @@ from inference import run_inference
 from image_utils import load_image_from_path
 from model_loader import load_model, model_diagnostics
 from pdf_generator import generate_analysis_pdf
+from recommendations import enrich_detections, ensure_detections_enriched, build_clinical_recommendations, WEBSITE_FOOTER
 
 logging.basicConfig(
     level=logging.INFO,
@@ -309,9 +310,10 @@ def analyze():
 
         image = load_image_from_path(temp_path)
         img_w, img_h = image.size
-        detections = run_inference(active_model, image)
+        raw_detections = run_inference(active_model, image)
         del image
 
+        enriched = enrich_detections(raw_detections, img_w, img_h)
         analysis_date = datetime.now(timezone.utc).isoformat()
 
         return jsonify(
@@ -322,7 +324,7 @@ def analyze():
                 "image_width": img_w,
                 "image_height": img_h,
                 "analysis_date": analysis_date,
-                "detection_count": len(detections),
+                "detection_count": len(enriched["detections"]),
                 "detections": [
                     {
                         "class_id": d["class_id"],
@@ -330,10 +332,16 @@ def analyze():
                         "bbox": d["bbox"],
                         "confidence": d["confidence"],
                         "location": d["location"],
+                        "severity": d["severity"],
+                        "tooth": d["tooth"],
+                        "description": d["description"],
+                        "recommendation": d["recommendation"],
                         "color": CLASS_COLORS.get(d["class_id"], "#FFFFFF"),
                     }
-                    for d in detections
+                    for d in enriched["detections"]
                 ],
+                "clinical_recommendations": enriched["clinical_recommendations"],
+                "footer": enriched["footer"],
             }
         )
     except MemoryError:
@@ -405,6 +413,24 @@ def get_analysis(analysis_id):
     analysis = get_analysis_by_id(analysis_id, user_id)
     if not analysis:
         return jsonify({"error": "Analysis not found."}), 404
+
+    image_path = analysis.get("image_path")
+    if image_path and os.path.isfile(image_path):
+        try:
+            from PIL import Image
+
+            with Image.open(image_path) as img:
+                img_w, img_h = img.size
+            analysis["detections"] = ensure_detections_enriched(
+                analysis.get("detections", []), img_w, img_h
+            )
+            analysis["clinical_recommendations"] = build_clinical_recommendations(
+                analysis["detections"]
+            )
+            analysis["footer"] = WEBSITE_FOOTER
+        except Exception:
+            logger.warning("Could not enrich saved analysis %s", analysis_id)
+
     return jsonify({"analysis": analysis})
 
 

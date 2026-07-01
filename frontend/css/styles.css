@@ -425,6 +425,150 @@ input, textarea, select { font-family: inherit; }
 .finding-card .conf { color: var(--success); font-weight: 600; font-size: 0.825rem; }
 .finding-card .loc { font-size: 0.75rem; color: var(--gray-600); }
 
+/* Clinical analysis report */
+.analysis-report-panel .results-layout { align-items: start; }
+.clinical-report-column { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+
+.clinical-section { margin-bottom: 0.25rem; }
+.clinical-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.clinical-section-title i { color: var(--navy-accent); font-size: 0.9rem; }
+
+.clinical-findings-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.clinical-finding-card {
+  background: white;
+  border: 1px solid var(--gray-100);
+  border-left: 4px solid var(--finding-accent, var(--navy-accent));
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem;
+  box-shadow: 0 2px 8px rgba(13, 27, 74, 0.06);
+}
+
+.finding-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.finding-class-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--navy-primary);
+  background: rgba(26, 42, 108, 0.08);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+
+.severity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+}
+.severity-badge.severity-high { background: #fef2f2; color: #b91c1c; }
+.severity-badge.severity-moderate { background: #fff7ed; color: #c2410c; }
+.severity-badge.severity-low { background: #fefce8; color: #a16207; }
+
+.clinical-finding-card.severity-high { border-left-color: #ef4444; }
+.clinical-finding-card.severity-moderate { border-left-color: #f97316; }
+.clinical-finding-card.severity-low { border-left-color: #eab308; }
+
+.finding-tooth {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  margin-bottom: 0.35rem;
+  line-height: 1.35;
+}
+
+.finding-description {
+  font-size: 0.825rem;
+  color: var(--gray-600);
+  line-height: 1.55;
+  margin-bottom: 0.6rem;
+}
+
+.finding-meta { font-size: 0.78rem; color: var(--navy-primary); font-weight: 600; }
+.finding-confidence i { margin-right: 0.25rem; color: var(--navy-accent); }
+
+.recommendations-section {
+  background: rgba(26, 42, 108, 0.04);
+  border: 1px solid rgba(26, 42, 108, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem;
+}
+
+.recommendations-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.recommendations-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.825rem;
+  color: var(--navy-dark);
+  line-height: 1.5;
+}
+
+.recommendations-list li i {
+  color: var(--success);
+  margin-top: 0.15rem;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.analysis-disclaimer {
+  font-size: 0.75rem;
+  color: var(--navy-primary);
+  opacity: 0.85;
+  text-align: center;
+  padding: 0.75rem 0.5rem 0;
+  border-top: 1px dashed var(--gray-200);
+  margin-top: 0.5rem;
+}
+
+.clinical-empty {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  padding: 1rem;
+  background: var(--off-white);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-100);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .clinical-findings-list { max-height: none; }
+}
+
 /* Patient form */
 .patient-form { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--gray-100); }
 .patient-form h4 { font-size: 0.9rem; font-weight: 700; color: var(--navy-dark); margin-bottom: 1rem; }

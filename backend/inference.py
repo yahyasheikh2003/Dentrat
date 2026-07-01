@@ -47,6 +47,64 @@ def _describe_location(bbox: list[float], img_w: int, img_h: int) -> str:
     return f"{vertical} {horizontal}"
 
 
+def get_severity(confidence: float) -> str:
+    """Map model confidence to clinical severity tier."""
+    if confidence >= 0.85:
+        return "High Severity"
+    if confidence >= 0.65:
+        return "Moderate Severity"
+    return "Low Severity"
+
+
+def _tooth_type_name(tooth_num: int) -> str:
+    position = tooth_num % 10
+    if position in (1, 2):
+        return "Incisor"
+    if position == 3:
+        return "Canine"
+    if position in (4, 5):
+        return "Premolar"
+    return "Molar"
+
+
+def estimate_tooth(bbox: list[float], img_w: int, img_h: int) -> str:
+    """
+    Estimate FDI tooth number from bounding box position on a panoramic OPG.
+    Standard OPG orientation: patient right = image left.
+    """
+    if img_w <= 0 or img_h <= 0 or len(bbox) != 4:
+        return "Location approximate (Tooth #—)"
+
+    x, y, w, h = bbox
+    cx = x + w / 2
+    cy = y + h / 2
+
+    upper = cy < img_h * 0.5
+    image_left = cx < img_w * 0.5
+
+    if upper and image_left:
+        teeth = [18, 17, 16, 15, 14, 13, 12, 11]
+        quad_name = "Upper Right"
+        rel_x = cx / max(img_w * 0.5, 1)
+    elif upper:
+        teeth = [21, 22, 23, 24, 25, 26, 27, 28]
+        quad_name = "Upper Left"
+        rel_x = (cx - img_w * 0.5) / max(img_w * 0.5, 1)
+    elif not image_left:
+        teeth = [31, 32, 33, 34, 35, 36, 37, 38]
+        quad_name = "Lower Left"
+        rel_x = (cx - img_w * 0.5) / max(img_w * 0.5, 1)
+    else:
+        teeth = [48, 47, 46, 45, 44, 43, 42, 41]
+        quad_name = "Lower Right"
+        rel_x = cx / max(img_w * 0.5, 1)
+
+    idx = min(max(int(rel_x * 8), 0), 7)
+    tooth_num = teeth[idx]
+    type_name = _tooth_type_name(tooth_num)
+    return f"{quad_name} {type_name} (Tooth #{tooth_num})"
+
+
 def preprocess_image(image: Image.Image) -> tuple[torch.Tensor, tuple[int, int]]:
     if image.mode != "RGB":
         image = image.convert("RGB")

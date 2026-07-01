@@ -9,7 +9,6 @@ env/
 # Model weights (too large for GitHub — upload separately)
 models/*.pth
 models/*.pt
-models/*.onnx
 
 # Keep models folder
 !models/.gitkeep

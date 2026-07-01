@@ -2,7 +2,7 @@
 DENTRAT — Flask API Server
 Serves frontend SPA + ML inference + auth + saved analyses + PDF reports.
 """
-import logging
+import re
 import os
 import shutil
 import threading
@@ -41,6 +41,7 @@ from database import (
     get_user_by_login,
     init_db,
     save_analysis,
+    save_contact_message,
     update_analysis_comment,
     username_exists,
 )
@@ -104,7 +105,7 @@ except Exception as exc:
     logger.error("Startup failed: %s", exc)
 
 SPA_ROUTES = {
-    "", "login", "signup", "dashboard", "results", "saved", "help",
+    "", "login", "signup", "dashboard", "results", "saved", "help", "contact",
 }
 STATIC_EXTENSIONS = {".css", ".js", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".woff", ".woff2"}
 
@@ -213,6 +214,52 @@ def me():
         return jsonify({"logged_in": False}), 200
     user = get_user_by_id(user_id)
     return jsonify({"logged_in": True, "user": user})
+
+
+# ─── Contact ───
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+@app.route("/contact", methods=["POST"])
+def contact():
+    """Save a contact form submission (public — no login required)."""
+    data = request.get_json(silent=True) or {}
+    full_name = (data.get("full_name") or "").strip()
+    email = (data.get("email") or "").strip().lower()
+    message = (data.get("message") or "").strip()
+    organization = (data.get("organization") or "").strip() or None
+    phone = (data.get("phone") or "").strip() or None
+
+    if not full_name:
+        return jsonify({"error": "Full name is required."}), 400
+    if not email:
+        return jsonify({"error": "Email is required."}), 400
+    if not _EMAIL_RE.match(email):
+        return jsonify({"error": "Please enter a valid email address."}), 400
+    if not message:
+        return jsonify({"error": "Message is required."}), 400
+    if len(message) > 5000:
+        return jsonify({"error": "Message is too long (max 5000 characters)."}), 400
+
+    try:
+        record = save_contact_message(
+            full_name=full_name,
+            email=email,
+            message=message,
+            organization=organization,
+            phone=phone,
+        )
+        return jsonify(
+            {
+                "success": True,
+                "message": "Thank you! Your message has been received. We will get back to you soon.",
+                "id": record["id"],
+            }
+        ), 201
+    except Exception as exc:
+        logger.exception("Contact form save failed")
+        return jsonify({"error": "Could not save your message. Please try again later."}), 500
 
 
 # ─── Analysis ───
@@ -450,6 +497,7 @@ def upload_alias():
 @app.route("/results")
 @app.route("/saved")
 @app.route("/help")
+@app.route("/contact")
 def serve_spa():
     return send_from_directory(FRONTEND_DIR, "index.html")
 

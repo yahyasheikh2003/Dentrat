@@ -76,6 +76,17 @@ def init_db():
                 confidence REAL NOT NULL,
                 FOREIGN KEY (image_id) REFERENCES images(id)
             );
+
+            CREATE TABLE IF NOT EXISTS contact_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                full_name TEXT NOT NULL,
+                organization TEXT,
+                email TEXT NOT NULL,
+                phone TEXT,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'unread'
+            );
             """
         )
 
@@ -279,6 +290,37 @@ def update_analysis_comment(analysis_id: int, user_id: int, comment: str) -> dic
             (comment, analysis_id, user_id),
         )
     return get_analysis_by_id(analysis_id, user_id)
+
+
+# ─── Contact messages ───
+
+def save_contact_message(
+    full_name: str,
+    email: str,
+    message: str,
+    organization: str | None = None,
+    phone: str | None = None,
+) -> dict[str, Any]:
+    created_at = _now_iso()
+    with get_connection() as conn:
+        cursor = conn.execute(
+            """
+            INSERT INTO contact_messages
+                (full_name, organization, email, phone, message, created_at, status)
+            VALUES (?, ?, ?, ?, ?, ?, 'unread')
+            """,
+            (full_name, organization, email, phone, message, created_at),
+        )
+        return {
+            "id": cursor.lastrowid,
+            "full_name": full_name,
+            "organization": organization,
+            "email": email,
+            "phone": phone,
+            "message": message,
+            "created_at": created_at,
+            "status": "unread",
+        }
 
 
 # ─── Legacy stats (dashboard) ───

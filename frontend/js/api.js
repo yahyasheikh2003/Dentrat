@@ -88,6 +88,10 @@ const API = {
   pdfUrl(id) {
     return `/analysis/${id}/pdf`;
   },
+
+  submitContact(payload) {
+    return this.request("/contact", { method: "POST", body: JSON.stringify(payload) });
+  },
 };
 
 const CLASS_COLORS = {

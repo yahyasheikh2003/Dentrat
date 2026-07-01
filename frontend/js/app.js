@@ -10,7 +10,7 @@ const Router = {
     await Auth.init();
     const path = window.location.pathname;
 
-    const publicPaths = ["/login", "/signup"];
+    const publicPaths = ["/login", "/signup", "/contact"];
     if (!Auth.isLoggedIn() && !publicPaths.includes(path)) {
       history.replaceState({}, "", "/login");
       return this.routes["/login"]?.();
@@ -55,6 +55,22 @@ function formatDate(iso) {
 }
 
 // ─── Shell ───
+function sidebarNav(activeNav, guest = false) {
+  const items = guest
+    ? [{ id: "contact", path: "/contact", icon: "fa-envelope", label: "Contact Us" }]
+    : [
+        { id: "dashboard", path: "/dashboard", icon: "fa-microscope", label: "Analysis" },
+        { id: "results", path: "/results", icon: "fa-chart-line", label: "Current Results" },
+        { id: "saved", path: "/saved", icon: "fa-folder-open", label: "Saved Analyses" },
+        { id: "help", path: "/help", icon: "fa-circle-question", label: "Help" },
+        { id: "contact", path: "/contact", icon: "fa-envelope", label: "Contact Us" },
+      ];
+  return items.map((item) => `
+    <button class="nav-item ${activeNav === item.id ? "active" : ""}" data-nav="${item.path}">
+      <i class="fa-solid ${item.icon}"></i> ${item.label}
+    </button>`).join("");
+}
+
 function renderShell(activeNav, content) {
   return `
     <div class="app-shell">
@@ -63,20 +79,7 @@ function renderShell(activeNav, content) {
           <div class="logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
           <div><h1>DENTRAT</h1><p>AI Dental Analysis</p></div>
         </div>
-        <nav class="sidebar-nav">
-          <button class="nav-item ${activeNav === "dashboard" ? "active" : ""}" data-nav="/dashboard">
-            <i class="fa-solid fa-microscope"></i> Analysis
-          </button>
-          <button class="nav-item ${activeNav === "results" ? "active" : ""}" data-nav="/results">
-            <i class="fa-solid fa-chart-line"></i> Current Results
-          </button>
-          <button class="nav-item ${activeNav === "saved" ? "active" : ""}" data-nav="/saved">
-            <i class="fa-solid fa-folder-open"></i> Saved Analyses
-          </button>
-          <button class="nav-item ${activeNav === "help" ? "active" : ""}" data-nav="/help">
-            <i class="fa-solid fa-circle-question"></i> Help
-          </button>
-        </nav>
+        <nav class="sidebar-nav">${sidebarNav(activeNav)}</nav>
         <div class="sidebar-footer">© 2026 DENTRAT<br>HIPAA Compliant</div>
       </aside>
       <div class="main-area">
@@ -85,7 +88,7 @@ function renderShell(activeNav, content) {
             <button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="topbar-greeting">
               <h2>Hello, ${esc(Auth.fullName())}</h2>
-              <p>Dental Radiography Analysis Dashboard</p>
+              <p class="trial-welcome-label"><i class="fa-solid fa-flask"></i> Welcome to the Trial Version</p>
             </div>
           </div>
           <div class="topbar-actions">
@@ -98,22 +101,66 @@ function renderShell(activeNav, content) {
           </div>
         </header>
         <main class="page-content">${content}</main>
+        <footer class="trial-footer">
+          <p class="trial-footer-note"><em>*Trial version supports limited number of image uploads per session</em></p>
+        </footer>
       </div>
     </div>`;
 }
 
-function bindShellEvents() {
+function renderGuestShell(activeNav, content) {
+  return `
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+          <div><h1>DENTRAT</h1><p>AI Dental Analysis</p></div>
+        </div>
+        <nav class="sidebar-nav">${sidebarNav(activeNav, true)}</nav>
+        <div class="sidebar-guest-actions">
+          <button class="btn btn-primary btn-sm guest-signin-btn" data-nav="/login">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In
+          </button>
+          <button class="btn btn-secondary btn-sm guest-signin-btn" data-nav="/signup" style="margin-top:0.5rem">
+            <i class="fa-solid fa-user-plus"></i> Create Account
+          </button>
+        </div>
+        <div class="sidebar-footer">© 2026 DENTRAT</div>
+      </aside>
+      <div class="main-area">
+        <header class="topbar">
+          <div style="display:flex;align-items:center;gap:1rem">
+            <button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="topbar-greeting">
+              <h2>Contact DENTRAT</h2>
+              <p>Trial version — free for everyone</p>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-primary btn-sm guest-signin-btn" data-nav="/login">
+              <i class="fa-solid fa-right-to-bracket"></i> Sign In
+            </button>
+          </div>
+        </header>
+        <main class="page-content">${content}</main>
+      </div>
+    </div>`;
+}
+
+function bindShellEvents(guest = false) {
   document.querySelectorAll("[data-nav]").forEach((btn) => {
     btn.addEventListener("click", () => Router.navigate(btn.dataset.nav));
   });
-  document.getElementById("logout-btn")?.addEventListener("click", async () => {
-    await Auth.logout();
-    Router.navigate("/login");
-  });
+  if (!guest) {
+    document.getElementById("logout-btn")?.addEventListener("click", async () => {
+      await Auth.logout();
+      Router.navigate("/login");
+    });
+    checkHealthStatus();
+  }
   document.getElementById("menu-toggle")?.addEventListener("click", () => {
     document.getElementById("sidebar")?.classList.toggle("open");
   });
-  checkHealthStatus();
 }
 
 async function checkHealthStatus() {
@@ -603,6 +650,129 @@ function renderHelp() {
   });
 }
 
+// ─── Contact Us ───
+function renderContact() {
+  document.title = "Contact Us — DENTRAT";
+  const loggedIn = Auth.isLoggedIn();
+
+  const loginPrompt = loggedIn ? "" : `
+    <div class="contact-login-prompt">
+      <div class="contact-login-icon"><i class="fa-solid fa-circle-info"></i></div>
+      <div>
+        <strong>Sign in for full analysis access</strong>
+        <p>This trial version is free for everyone. To upload and analyze X-rays, please
+          <a href="/login" data-link-login>sign in</a> or
+          <a href="/signup" data-link-signup>create an account</a>.</p>
+      </div>
+    </div>`;
+
+  const content = `
+    ${loginPrompt}
+    <div class="contact-page">
+      <div class="panel contact-intro">
+        <div class="contact-intro-header">
+          <div class="contact-icon-circle"><i class="fa-solid fa-envelope-open-text"></i></div>
+          <div>
+            <h3>Contact DENTRAT Team</h3>
+            <p class="contact-desc">
+              This is a trial version of DENTRAT, free for everyone to use.
+              For organizations, clinics, and dental professionals who want
+              authenticated access with personalized features, please contact us.
+            </p>
+            <p class="contact-email-line">
+              <i class="fa-solid fa-at"></i>
+              <a href="mailto:contact.dentrat@gmail.com">contact.dentrat@gmail.com</a>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="panel contact-form-panel">
+        <h3><i class="fa-solid fa-paper-plane"></i> Send us a message</h3>
+        <div id="contact-error" class="auth-error hidden"></div>
+        <div id="contact-success" class="contact-success hidden"></div>
+        <form id="contact-form">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Full Name *</label>
+              <input type="text" id="ct-name" required placeholder="Your full name" />
+            </div>
+            <div class="form-row">
+              <label>Organization / Clinic <span class="optional">(optional)</span></label>
+              <input type="text" id="ct-org" placeholder="Clinic or organization name" />
+            </div>
+            <div class="form-row">
+              <label>Email *</label>
+              <input type="email" id="ct-email" required placeholder="you@clinic.com" />
+            </div>
+            <div class="form-row">
+              <label>Phone Number <span class="optional">(optional)</span></label>
+              <input type="tel" id="ct-phone" placeholder="+1 555 000 0000" />
+            </div>
+            <div class="form-row full">
+              <label>Message *</label>
+              <textarea id="ct-message" required rows="5" placeholder="How can we help you?"></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="ct-btn" style="width:auto;margin-top:0.5rem">
+            <i class="fa-solid fa-paper-plane"></i> Send Message
+          </button>
+        </form>
+      </div>
+    </div>`;
+
+  document.getElementById("app").innerHTML = loggedIn
+    ? renderShell("contact", content)
+    : renderGuestShell("contact", content);
+
+  bindShellEvents(!loggedIn);
+
+  document.querySelector("[data-link-login]")?.addEventListener("click", (e) => {
+    e.preventDefault(); Router.navigate("/login");
+  });
+  document.querySelector("[data-link-signup]")?.addEventListener("click", (e) => {
+    e.preventDefault(); Router.navigate("/signup");
+  });
+
+  if (loggedIn && Auth.user) {
+    const nameEl = document.getElementById("ct-name");
+    const emailEl = document.getElementById("ct-email");
+    if (nameEl && Auth.user.full_name) nameEl.value = Auth.user.full_name;
+    if (emailEl && Auth.user.email) emailEl.value = Auth.user.email;
+    if (document.getElementById("ct-org") && Auth.user.organization) {
+      document.getElementById("ct-org").value = Auth.user.organization;
+    }
+  }
+
+  document.getElementById("contact-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById("contact-error");
+    const okEl = document.getElementById("contact-success");
+    const btn = document.getElementById("ct-btn");
+    errEl.classList.add("hidden");
+    okEl.classList.add("hidden");
+    btn.disabled = true;
+
+    try {
+      const data = await API.submitContact({
+        full_name: document.getElementById("ct-name").value.trim(),
+        organization: document.getElementById("ct-org").value.trim(),
+        email: document.getElementById("ct-email").value.trim(),
+        phone: document.getElementById("ct-phone").value.trim(),
+        message: document.getElementById("ct-message").value.trim(),
+      });
+      okEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${esc(data.message)}`;
+      okEl.classList.remove("hidden");
+      document.getElementById("contact-form").reset();
+      showToast("Message sent successfully!", "success");
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove("hidden");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
 // ─── Init ───
 Router.register("/signup", renderSignup);
 Router.register("/login", renderLogin);
@@ -611,6 +781,7 @@ Router.register("/", renderDashboard);
 Router.register("/results", renderResults);
 Router.register("/saved", renderSaved);
 Router.register("/help", renderHelp);
+Router.register("/contact", renderContact);
 
 window.addEventListener("popstate", () => Router.render());
 document.addEventListener("DOMContentLoaded", () => Router.render());

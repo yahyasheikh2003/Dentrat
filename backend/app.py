@@ -2,8 +2,9 @@
 DENTRAT — Flask API Server
 Serves frontend SPA + ML inference + auth + saved analyses + PDF reports.
 """
-import re
+import logging
 import os
+import re
 import shutil
 import threading
 import uuid

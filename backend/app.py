@@ -20,6 +20,8 @@ from config import (
     ALLOWED_EXTENSIONS,
     CLASS_COLORS,
     CLASS_NAMES,
+    DATA_DIR,
+    DATABASE_PATH,
     DEBUG,
     DETECTABLE_CONDITIONS,
     HOST,
@@ -49,6 +51,7 @@ from database import (
 from inference import run_inference
 from image_utils import load_image_from_path
 from model_loader import load_model, model_diagnostics
+from email_sender import send_contact_notification
 from pdf_generator import generate_analysis_pdf
 from recommendations import enrich_detections, ensure_detections_enriched, build_clinical_recommendations, WEBSITE_FOOTER
 
@@ -93,8 +96,11 @@ def get_model():
 
 try:
     init_db()
+    os.makedirs(DATA_DIR, exist_ok=True)
     os.makedirs(SAVED_IMAGES_DIR, exist_ok=True)
     os.makedirs(UPLOAD_DIR, exist_ok=True)
+    logger.info("Persistent data directory: %s", DATA_DIR)
+    logger.info("Database: %s", DATABASE_PATH)
     # Pre-load model at startup if possible; analysis will retry via get_model()
     try:
         model = load_model()
@@ -252,6 +258,7 @@ def contact():
             organization=organization,
             phone=phone,
         )
+        send_contact_notification(record)
         return jsonify(
             {
                 "success": True,

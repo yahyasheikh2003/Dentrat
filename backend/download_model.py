@@ -123,7 +123,7 @@ def ensure_model_file(model_path: str, model_url: str, force: bool = False) -> N
         raise FileNotFoundError(
             f"No valid model at '{model_path}'. "
             "Set MODEL_URL in Railway Variables to a Google Drive link "
-            "or direct download URL for dental_model_v2.pth."
+            "or direct download URL for dental_model_v2.pth (or v3 fallback)."
         )
 
     os.makedirs(os.path.dirname(model_path), exist_ok=True)

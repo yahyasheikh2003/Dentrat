@@ -1,0 +1,14 @@
+Metric,Value
+Model,dental_model_finetuned.pth
+Test folder,C:\Users\hp\dental-anomaly-detection\test\test
+Confidence threshold,0.05
+Accuracy,0.6567
+Balanced Accuracy,0.6613
+MCC,0.9080
+Precision (macro/micro/weighted),0.5450 / 0.9455 / 0.9467
+Recall (macro/micro/weighted),0.4723 / 0.9455 / 0.9455
+F1 (macro/micro/weighted),0.4917 / 0.9455 / 0.9375
+mAP @ IoU=0.50,0.2569
+mAP @ IoU=0.50:0.95,0.1066
+Avg Inference (ms) / FPS,0.00 / 0.00
+Parameters / Model Size,"41,329,911 / 158.17 MB"

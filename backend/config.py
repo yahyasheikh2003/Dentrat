@@ -14,11 +14,13 @@ MODEL_V2_PATH = os.path.join(MODELS_DIR, "dental_model_v2.pth")
 def resolve_model_path() -> str:
     """
     Pick the best available model file.
-    Priority: MODEL_PATH env → v3 → v2
+    Priority: MODEL_PATH env → v2 → v3 fallback
     """
     env_path = os.environ.get("MODEL_PATH")
     if env_path:
         return env_path
+    if os.path.isfile(MODEL_V2_PATH):
+        return MODEL_V2_PATH
     if os.path.isfile(MODEL_V3_PATH):
         return MODEL_V3_PATH
     return MODEL_V2_PATH
@@ -27,14 +29,39 @@ def resolve_model_path() -> str:
 MODEL_PATH = resolve_model_path()
 MODEL_URL = os.environ.get("MODEL_URL", "")
 
-DATABASE_PATH = os.path.join(BACKEND_DIR, "dental_history.db")
+
+def _resolve_data_dir() -> str:
+    """Persistent storage for DB and saved images (use Railway Volume at /data)."""
+    env_dir = os.environ.get("DATA_DIR")
+    if env_dir:
+        return env_dir
+    if os.path.isdir("/data"):
+        return "/data"
+    return BACKEND_DIR
+
+
+DATA_DIR = _resolve_data_dir()
+DATABASE_PATH = os.path.join(DATA_DIR, "dental_history.db")
 UPLOAD_DIR = os.environ.get("UPLOAD_DIR", "/tmp/dental_uploads")
 SAVED_IMAGES_DIR = os.environ.get(
     "SAVED_IMAGES_DIR",
-    os.path.join(BACKEND_DIR, "saved_images"),
+    os.path.join(DATA_DIR, "saved_images"),
 )
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "dentrat-change-this-in-production")
+
+# Contact: public address shown on website; notifications go to admin inbox
+CONTACT_DISPLAY_EMAIL = "contact.dentrat@gmail.com"
+CONTACT_NOTIFY_EMAIL = os.environ.get("CONTACT_NOTIFY_EMAIL", "yahyasheikh2003@gmail.com")
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ.get("SMTP_USER", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+SMTP_FROM = os.environ.get("SMTP_FROM", CONTACT_DISPLAY_EMAIL)
+
+
+def smtp_configured() -> bool:
+    return bool(SMTP_USER and SMTP_PASSWORD)
 
 IMAGE_SIZE = 416
 CONFIDENCE_THRESHOLD = 0.5

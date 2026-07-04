@@ -1,0 +1,228 @@
+<html><head><meta charset='utf-8'><title>DENTRAT Report</title>
+<style>body{font-family:Arial;margin:40px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px}th{background:#3498db;color:white}img{max-width:100%}</style></head><body>
+<h1>DENTRAT Performance Report</h1><p>2026-07-03 21:40:59.993162</p>
+<h2>Overall</h2>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Metric</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Model</td>
+      <td>dental_model_finetuned.pth</td>
+    </tr>
+    <tr>
+      <td>Test folder</td>
+      <td>C:\Users\hp\dental-anomaly-detection\test\test</td>
+    </tr>
+    <tr>
+      <td>Confidence threshold</td>
+      <td>0.05</td>
+    </tr>
+    <tr>
+      <td>Accuracy</td>
+      <td>0.6567</td>
+    </tr>
+    <tr>
+      <td>Balanced Accuracy</td>
+      <td>0.6613</td>
+    </tr>
+    <tr>
+      <td>MCC</td>
+      <td>0.9080</td>
+    </tr>
+    <tr>
+      <td>Precision (macro/micro/weighted)</td>
+      <td>0.5450 / 0.9455 / 0.9467</td>
+    </tr>
+    <tr>
+      <td>Recall (macro/micro/weighted)</td>
+      <td>0.4723 / 0.9455 / 0.9455</td>
+    </tr>
+    <tr>
+      <td>F1 (macro/micro/weighted)</td>
+      <td>0.4917 / 0.9455 / 0.9375</td>
+    </tr>
+    <tr>
+      <td>mAP @ IoU=0.50</td>
+      <td>0.2569</td>
+    </tr>
+    <tr>
+      <td>mAP @ IoU=0.50:0.95</td>
+      <td>0.1066</td>
+    </tr>
+    <tr>
+      <td>Avg Inference (ms) / FPS</td>
+      <td>0.00 / 0.00</td>
+    </tr>
+    <tr>
+      <td>Parameters / Model Size</td>
+      <td>41,329,911 / 158.17 MB</td>
+    </tr>
+  </tbody>
+</table>
+<h2>Per Class</h2>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Class Name</th>
+      <th>Support</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>Specificity</th>
+      <th>FPR</th>
+      <th>FNR</th>
+      <th>AP@0.50</th>
+      <th>Avg IoU (TP)</th>
+      <th>ROC-AUC</th>
+      <th>TP</th>
+      <th>FP</th>
+      <th>FN</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Caries</td>
+      <td>165</td>
+      <td>0.0160</td>
+      <td>0.1628</td>
+      <td>0.0292</td>
+      <td>0.4609</td>
+      <td>0.5391</td>
+      <td>0.8372</td>
+      <td>0.0435</td>
+      <td>0.6197</td>
+      <td>NaN</td>
+      <td>21</td>
+      <td>1289</td>
+      <td>108</td>
+    </tr>
+    <tr>
+      <td>Impacted Teeth</td>
+      <td>444</td>
+      <td>0.2490</td>
+      <td>0.8460</td>
+      <td>0.3847</td>
+      <td>0.4258</td>
+      <td>0.5742</td>
+      <td>0.1540</td>
+      <td>0.8908</td>
+      <td>0.7514</td>
+      <td>NaN</td>
+      <td>368</td>
+      <td>1110</td>
+      <td>67</td>
+    </tr>
+    <tr>
+      <td>Broken Down Crown/Root</td>
+      <td>520</td>
+      <td>0.0433</td>
+      <td>0.8015</td>
+      <td>0.0821</td>
+      <td>0.0751</td>
+      <td>0.9249</td>
+      <td>0.1985</td>
+      <td>0.2625</td>
+      <td>0.6889</td>
+      <td>NaN</td>
+      <td>416</td>
+      <td>9195</td>
+      <td>103</td>
+    </tr>
+    <tr>
+      <td>Infection</td>
+      <td>93</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>1.0000</td>
+      <td>0.0000</td>
+      <td>1.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>0</td>
+      <td>92</td>
+    </tr>
+    <tr>
+      <td>Fractured Teeth</td>
+      <td>0</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>1.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>NaN</td>
+      <td>0.0000</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>Periodontal Bone Loss</td>
+      <td>45</td>
+      <td>0.0276</td>
+      <td>0.6136</td>
+      <td>0.0527</td>
+      <td>0.5618</td>
+      <td>0.4382</td>
+      <td>0.3864</td>
+      <td>0.0878</td>
+      <td>0.6830</td>
+      <td>NaN</td>
+      <td>27</td>
+      <td>953</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <td>Other Abnormalities</td>
+      <td>0</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.8768</td>
+      <td>0.1232</td>
+      <td>0.0000</td>
+      <td>NaN</td>
+      <td>0.0000</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>178</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<h2>Figures</h2>
+<h3>01_loss_curves.png</h3><img src='01_loss_curves.png'>
+<h3>02_precision_recall_curves.png</h3><img src='02_precision_recall_curves.png'>
+<h3>03_roc_curves.png</h3><img src='03_roc_curves.png'>
+<h3>04_confusion_matrix.png</h3><img src='04_confusion_matrix.png'>
+<h3>05_per_class_performance.png</h3><img src='05_per_class_performance.png'>
+<h3>06_confidence_distribution.png</h3><img src='06_confidence_distribution.png'>
+<h3>07_iou_distribution.png</h3><img src='07_iou_distribution.png'>
+<h3>08_fp_fn_analysis.png</h3><img src='08_fp_fn_analysis.png'>
+<h3>10_class_distribution.png</h3><img src='10_class_distribution.png'>
+<h3>11_inference_time.png</h3><img src='11_inference_time.png'>
+<h3>3613090000-jpg_png_jpg.rf.20108e40c15c8ad01fd639454fab4e72_lowTP_5.png</h3><img src='3613090000-jpg_png_jpg.rf.20108e40c15c8ad01fd639454fab4e72_lowTP_5.png'>
+<h3>3795190000-jpg_png_jpg.rf.4572a3d17a5074c17a16f0e8e2555900_lowTP_4.png</h3><img src='3795190000-jpg_png_jpg.rf.4572a3d17a5074c17a16f0e8e2555900_lowTP_4.png'>
+<h3>3876050000-jpg_png_jpg.rf.03207f5b5282978e9d59c5c473c831a6_FP_1.png</h3><img src='3876050000-jpg_png_jpg.rf.03207f5b5282978e9d59c5c473c831a6_FP_1.png'>
+<h3>3924920000-jpg_png_jpg.rf.2032e0289acb8b701e2d5a6c84646c9b_FP_5.png</h3><img src='3924920000-jpg_png_jpg.rf.2032e0289acb8b701e2d5a6c84646c9b_FP_5.png'>
+<h3>3944480000-jpg_png_jpg.rf.98730493e46b17cf98678cb66b4203c6_lowTP_1.png</h3><img src='3944480000-jpg_png_jpg.rf.98730493e46b17cf98678cb66b4203c6_lowTP_1.png'>
+<h3>4001430000-jpg_png_jpg.rf.4baa727552e3a2961a5ad2bef5bc6805_FP_2.png</h3><img src='4001430000-jpg_png_jpg.rf.4baa727552e3a2961a5ad2bef5bc6805_FP_2.png'>
+<h3>4055020000-jpg_png_jpg.rf.84138772acbbf9b1db331bbda84d3442_lowTP_2.png</h3><img src='4055020000-jpg_png_jpg.rf.84138772acbbf9b1db331bbda84d3442_lowTP_2.png'>
+<h3>4055670000-jpg_png_jpg.rf.2ebc0fdb7142723e7218aa7664821065_FP_3.png</h3><img src='4055670000-jpg_png_jpg.rf.2ebc0fdb7142723e7218aa7664821065_FP_3.png'>
+<h3>cropped_PARBODH-CHAND_2023-10-20185136_1_png.rf.9e6a28eab0f286cd9190fbceca27c3a4_FP_4.png</h3><img src='cropped_PARBODH-CHAND_2023-10-20185136_1_png.rf.9e6a28eab0f286cd9190fbceca27c3a4_FP_4.png'>
+<h3>f1bb9e4a-MOHAMADI_SANAZ_2020-08-12202441_jpg.rf.d0da735b668cc14fd7024d836ee77b65_lowTP_3.png</h3><img src='f1bb9e4a-MOHAMADI_SANAZ_2020-08-12202441_jpg.rf.d0da735b668cc14fd7024d836ee77b65_lowTP_3.png'>
+<h3>f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_1.png</h3><img src='f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_1.png'>
+<h3>f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_2.png</h3><img src='f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_2.png'>
+<h3>f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_3.png</h3><img src='f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_3.png'>
+<h3>f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_4.png</h3><img src='f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_4.png'>
+<h3>f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_5.png</h3><img src='f5f2b9d9-PANAHI_HOSEIN_2020-08-15115131_jpg.rf.19179711c7695431070ddbd40860aceb_FN_5.png'>
+</body></html>

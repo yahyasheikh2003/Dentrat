@@ -1,7 +1,7 @@
 """
 Load the Faster R-CNN dental anomaly detector for CPU inference.
 
-Supports dental_model_v3.pth with automatic fallback to dental_model_v2.pth.
+Supports dental_model_v2.pth with automatic fallback to dental_model_v3.pth.
 """
 import logging
 import os
@@ -37,7 +37,7 @@ def load_model(model_path: str | None = None):
     """
     Load the trained model onto CPU.
 
-    Uses v3 if available, otherwise v2, unless model_path is specified.
+    Uses v2 if available, otherwise v3, unless model_path is specified.
     """
     path = model_path or resolve_model_path()
     ensure_model_file(path, MODEL_URL)

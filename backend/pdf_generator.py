@@ -140,6 +140,18 @@ def generate_analysis_pdf(analysis: dict) -> bytes:
         parent=cell,
         fontName="Helvetica-Bold",
     )
+    cell_label = ParagraphStyle(
+        "TableCellLabel",
+        parent=cell,
+        fontName="Helvetica-Bold",
+        textColor=colors.white,
+    )
+    cell_header = ParagraphStyle(
+        "TableHeader",
+        parent=cell,
+        fontName="Helvetica-Bold",
+        textColor=colors.white,
+    )
     footer = ParagraphStyle(
         "Footer",
         parent=styles["Normal"],
@@ -179,10 +191,10 @@ def generate_analysis_pdf(analysis: dict) -> bytes:
         formatted_date = _safe(analysis_date)
 
     patient_rows = [
-        [Paragraph("<b>Patient Name</b>", cell_bold), Paragraph(_safe(analysis.get("patient_name")), cell)],
-        [Paragraph("<b>Contact</b>", cell_bold), Paragraph(_safe(analysis.get("patient_contact")), cell)],
-        [Paragraph("<b>Email</b>", cell_bold), Paragraph(_safe(analysis.get("patient_email")), cell)],
-        [Paragraph("<b>Analysis Date</b>", cell_bold), Paragraph(formatted_date, cell)],
+        [Paragraph("Patient Name", cell_label), Paragraph(_safe(analysis.get("patient_name")), cell)],
+        [Paragraph("Contact", cell_label), Paragraph(_safe(analysis.get("patient_contact")), cell)],
+        [Paragraph("Email", cell_label), Paragraph(_safe(analysis.get("patient_email")), cell)],
+        [Paragraph("Analysis Date", cell_label), Paragraph(formatted_date, cell)],
     ]
     patient_table = Table(patient_rows, colWidths=[1.55 * inch, 4.45 * inch])
     patient_table.setStyle(
@@ -208,11 +220,11 @@ def generate_analysis_pdf(analysis: dict) -> bytes:
 
     if detections:
         headers = [
-            Paragraph("<b>#</b>", cell_bold),
-            Paragraph("<b>Condition</b>", cell_bold),
-            Paragraph("<b>Tooth / Region</b>", cell_bold),
-            Paragraph("<b>Severity</b>", cell_bold),
-            Paragraph("<b>Confidence</b>", cell_bold),
+            Paragraph("#", cell_header),
+            Paragraph("Condition", cell_header),
+            Paragraph("Tooth / Region", cell_header),
+            Paragraph("Severity", cell_header),
+            Paragraph("Confidence", cell_header),
         ]
         table_data = [headers]
         for i, det in enumerate(detections, 1):

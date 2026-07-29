@@ -3,7 +3,7 @@ Clinical descriptions, recommendations, and detection enrichment for DENTRAT.
 """
 from typing import Any
 
-from inference import estimate_tooth, get_severity
+from inference import get_severity
 
 WEBSITE_FOOTER = (
     "*This AI-generated report should be reviewed by a licensed dental "
@@ -16,7 +16,6 @@ CLASS_RECOMMENDATIONS: dict[int, str] = {
     3: "Evaluate for extraction or restoration. Consider endodontic consultation.",
     4: "Initiate appropriate antibiotic therapy. Consider endodontic treatment.",
     5: "Evaluate for immediate restoration or extraction. Monitor for pulp exposure.",
-    6: "Refer for periodontal evaluation. Consider scaling and root planing.",
     7: "Clinical correlation recommended. Further imaging may be required.",
 }
 
@@ -47,11 +46,6 @@ CLINICAL_DESCRIPTIONS: dict[int, dict[str, str]] = {
         "moderate": "Tooth fracture identified; evaluate stability and restorative options",
         "low": "Possible minor fracture or crack; monitor and correlate clinically",
     },
-    6: {
-        "high": "Significant alveolar bone loss indicating advanced periodontal involvement",
-        "moderate": "Moderate horizontal or vertical bone loss detected in affected region",
-        "low": "Early periodontal bone changes noted; periodontal screening recommended",
-    },
     7: {
         "high": "Notable radiographic abnormality requiring prompt specialist evaluation",
         "moderate": "Unusual finding detected; further diagnostic workup recommended",
@@ -81,12 +75,6 @@ def get_class_recommendation(class_id: int) -> str:
     )
 
 
-def _extract_tooth_number(tooth_label: str) -> str | None:
-    if "#" not in tooth_label:
-        return None
-    return tooth_label.split("#")[-1].rstrip(")")
-
-
 def build_clinical_recommendations(detections: list[dict[str, Any]]) -> list[str]:
     """Aggregate report-level recommendations from all detections."""
     if not detections:
@@ -110,10 +98,6 @@ def build_clinical_recommendations(detections: list[dict[str, Any]]) -> list[str
         add("Plan clinical evaluation for moderate-severity findings within standard follow-up interval")
 
     for det in detections:
-        tooth_num = _extract_tooth_number(det.get("tooth", ""))
-        class_name = det.get("class", "finding")
-        if tooth_num:
-            add(f"Consider restorative or specialist evaluation for Tooth #{tooth_num} ({class_name.lower()} detected)")
         class_rec = det.get("recommendation") or get_class_recommendation(det.get("class_id", 0))
         add(class_rec)
 
@@ -122,14 +106,12 @@ def build_clinical_recommendations(detections: list[dict[str, Any]]) -> list[str
 
 
 def enrich_detection(det: dict[str, Any], img_w: int, img_h: int) -> dict[str, Any]:
-    """Add severity, tooth, description, and per-finding recommendation."""
+    """Add severity, description, and per-finding recommendation."""
     confidence = float(det.get("confidence", 0))
     class_id = int(det.get("class_id", 0))
-    bbox = det.get("bbox", [0, 0, 0, 0])
 
     enriched = dict(det)
     enriched["severity"] = get_severity(confidence)
-    enriched["tooth"] = estimate_tooth(bbox, img_w, img_h)
     enriched["description"] = get_clinical_description(class_id, confidence)
     enriched["recommendation"] = get_class_recommendation(class_id)
     return enriched
@@ -153,6 +135,6 @@ def ensure_detections_enriched(
     """Backfill enrichment for older saved analyses missing new fields."""
     if not detections:
         return detections
-    if "severity" in detections[0] and "tooth" in detections[0]:
+    if "severity" in detections[0] and "description" in detections[0]:
         return detections
     return [enrich_detection(d, img_w, img_h) for d in detections]

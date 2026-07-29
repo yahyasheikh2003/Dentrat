@@ -32,7 +32,6 @@ const AnalysisUI = {
             <i class="fa-solid ${this.severityIcon(severity)}"></i> ${esc(severity)}
           </span>
         </div>
-        <h4 class="finding-tooth">${esc(det.tooth || det.location || "Approximate location")}</h4>
         <p class="finding-description">${esc(det.description || "Radiographic abnormality detected in the imaged region.")}</p>
         <div class="finding-meta">
           <span class="finding-confidence"><i class="fa-solid fa-chart-simple"></i> Confidence: ${conf}%</span>

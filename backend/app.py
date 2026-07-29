@@ -24,6 +24,7 @@ from config import (
     DATABASE_PATH,
     DEBUG,
     DETECTABLE_CONDITIONS,
+    EXCLUDED_CLASS_IDS,
     HOST,
     MAX_UPLOAD_BYTES,
     MODEL_PATH,
@@ -283,6 +284,11 @@ def _find_temp_file(temp_id: str) -> str | None:
     return None
 
 
+def filter_visible_detections(detections: list) -> list:
+    """Drop detections for classes hidden from users (e.g. Periodontal Bone Loss)."""
+    return [d for d in detections if d.get("class_id") not in EXCLUDED_CLASS_IDS]
+
+
 @app.route("/analyze", methods=["POST"])
 @login_required
 def analyze():
@@ -338,9 +344,7 @@ def analyze():
                         "class": d["class"],
                         "bbox": d["bbox"],
                         "confidence": d["confidence"],
-                        "location": d["location"],
                         "severity": d["severity"],
-                        "tooth": d["tooth"],
                         "description": d["description"],
                         "recommendation": d["recommendation"],
                         "color": CLASS_COLORS.get(d["class_id"], "#FFFFFF"),
@@ -428,8 +432,8 @@ def get_analysis(analysis_id):
 
             with Image.open(image_path) as img:
                 img_w, img_h = img.size
-            analysis["detections"] = ensure_detections_enriched(
-                analysis.get("detections", []), img_w, img_h
+            analysis["detections"] = filter_visible_detections(
+                ensure_detections_enriched(analysis.get("detections", []), img_w, img_h)
             )
             analysis["clinical_recommendations"] = build_clinical_recommendations(
                 analysis["detections"]
@@ -469,6 +473,9 @@ def download_pdf(analysis_id):
     analysis = get_analysis_by_id(analysis_id, user_id)
     if not analysis:
         return jsonify({"error": "Analysis not found."}), 404
+
+    analysis = dict(analysis)
+    analysis["detections"] = filter_visible_detections(analysis.get("detections", []))
 
     try:
         pdf_bytes = generate_analysis_pdf(analysis)

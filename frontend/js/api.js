@@ -102,7 +102,6 @@ const CLASS_COLORS = {
 const CONDITIONS = [
   { id: 1, name: "Caries & Cavities", icon: "fa-circle", color: "#ef4444" },
   { id: 2, name: "Impacted Teeth", icon: "fa-tooth", color: "#f97316" },
-  { id: 6, name: "Periodontal Bone Loss", icon: "fa-bone", color: "#a855f7" },
   { id: 3, name: "Broken Crown/Root", icon: "fa-shield-halved", color: "#eab308" },
   { id: 4, name: "Infection", icon: "fa-virus", color: "#ec4899" },
   { id: 5, name: "Fractured Teeth", icon: "fa-bolt", color: "#22c55e" },

@@ -497,14 +497,6 @@ input, textarea, select { font-family: inherit; }
 .clinical-finding-card.severity-moderate { border-left-color: #f97316; }
 .clinical-finding-card.severity-low { border-left-color: #eab308; }
 
-.finding-tooth {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--navy-dark);
-  margin-bottom: 0.35rem;
-  line-height: 1.35;
-}
-
 .finding-description {
   font-size: 0.825rem;
   color: var(--gray-600);

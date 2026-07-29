@@ -3,7 +3,6 @@ Generate professional PDF reports for DENTRAT analyses using ReportLab.
 """
 import io
 import os
-import re
 from datetime import datetime
 
 from PIL import Image, ImageDraw
@@ -35,21 +34,6 @@ def _safe(value, fallback="Not provided") -> str:
     if value is None or str(value).strip() in ("", "—", "-"):
         return fallback
     return str(value).strip()
-
-
-def _pdf_tooth_cell(det: dict) -> str:
-    """Compact tooth label for PDF table cells (avoids overflow)."""
-    tooth = det.get("tooth") or ""
-    match = re.search(r"#(\d+)", tooth)
-    num = f"#{match.group(1)}" if match else ""
-    region = det.get("location") or ""
-    if tooth and "(" in tooth:
-        region = tooth.split("(")[0].strip()
-    if num and region:
-        return f"{num}<br/><font size='7' color='#5a6888'>{region}</font>"
-    if num:
-        return num
-    return _safe(region, "See image")
 
 
 def _draw_annotated_image(image_path: str, detections: list[dict], max_width: int = 500) -> io.BytesIO | None:
@@ -222,7 +206,6 @@ def generate_analysis_pdf(analysis: dict) -> bytes:
         headers = [
             Paragraph("#", cell_header),
             Paragraph("Condition", cell_header),
-            Paragraph("Tooth / Region", cell_header),
             Paragraph("Severity", cell_header),
             Paragraph("Confidence", cell_header),
         ]
@@ -232,12 +215,11 @@ def generate_analysis_pdf(analysis: dict) -> bytes:
             table_data.append([
                 Paragraph(str(i), cell),
                 Paragraph(_safe(det.get("class"), "Unknown"), cell),
-                Paragraph(_pdf_tooth_cell(det), cell),
                 Paragraph(_safe(det.get("severity"), "Not assessed"), cell),
                 Paragraph(f"{conf * 100:.1f}%", cell),
             ])
 
-        col_widths = [0.32 * inch, 1.45 * inch, 1.55 * inch, 1.05 * inch, 0.85 * inch]
+        col_widths = [0.32 * inch, 2.35 * inch, 1.35 * inch, 0.85 * inch]
         results_table = Table(table_data, colWidths=col_widths, repeatRows=1)
         results_table.setStyle(
             TableStyle([
